@@ -1,0 +1,6 @@
+carry in and carry out
+
+lut logic
+
+dual/double mode
+
