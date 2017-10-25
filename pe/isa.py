@@ -1,78 +1,71 @@
 from .config import config
-from .pe import PE, ALU, COND
+from .pe import PE, ALU, COND, CONST
 
 __all__ = ['or_', 'and_', 'xor', 'inv']
 
 def or_():
-    code = config('l0dsooooo', o=0x12)
-    return PE( code, ALU(lambda a, b, c, d: a | b) )
+    return PE( 0x12, ALU(lambda a, b, c, d: a | b) )
 
 def and_():
-    code = config('l0dsooooo', o=0x13)
-    return PE( code, ALU(lambda a, b, c, d: a & b) )
+    return PE( 0x13, ALU(lambda a, b, c, d: a & b) )
 
 def xor():
-    code = config('l0dsooooo', o=0x14)
-    return PE( code, ALU(lambda a, b, c, d: a ^ b) )
+    return PE( 0x14, ALU(lambda a, b, c, d: a ^ b) )
 
 def inv():
-    code = config('l0dsooooo', o=0x15)
-    return PE( code, ALU(lambda a, b, c, d: ~a) )
+    return PE( 0x15, ALU(lambda a, b, c, d: ~a) )
 
 
 def lshr():
-    code = config('l0dsooooo', o=0xf)
-    # mask b
-    return PE( code, ALU(lambda a, b, c, d: a >> b) )
+    # b[3:0]
+    return PE( 0xf, ALU(lambda a, b, c, d: a >> b) )
 
 def ashr():
-    code = config('l0dsooooo', o=0x10)
-    return PE( code, ALU(lambda a, b, c, d: a >> b) )
+    # b[3:0]
+    return PE( 0x10, ALU(lambda a, b, c, d: a >> b), signed=1 )
 
 def lshl():
-    code = config('l0dsooooo', o=0x11)
-    return PE( code, ALU(lambda a, b, c, d: a << b) )
+    # b[3:0]
+    return PE( 0x11, ALU(lambda a, b, c, d: a << b) )
 
 
 def add():
-    code = config('l0dsooooo', o=0x0)
-    # res_p = full sum has 2 extra bits; cout is 1 if either of those are 1
-    return PE( code, ALU(lambda a, b, c, d: a + b) )
+    # res_p = cout
+    return PE( 0x0, ALU(lambda a, b, c, d: a + b + d) )
 
 def sub():
-    code = config('l0dsooooo', o=0x1)
-    return PE( code, ALU(lambda a, b, c, d: a - b) )
+    # res = (a - b) + c
+    return PE( 0x1, ALU(lambda a, b, c, d: a - b + d) )
 
 def abs():
-    code = config('l0dsooooo', o=0x3)
-    return PE( code, ALU(lambda a, b, c, d: abs(a)) )
+    # res = abs(a-b) + c
+    return PE( 0x3, ALU(lambda a, b, c, d: a if a >= 0 else -a) )
 
 
+# this isn't correct
 def ge(signed):
-    code = config('l0dsooooo', o=0x4)
-    return PE( code, ALU(lambda a, b, c, d: a-b), 
-                     COND(lambda ge, eq, le: ge, signed) )
+    # res = a >= b ? a : b (comparison should be signed/unsigned)
+    return PE( 0x4, ALU(lambda a, b, c, d: a-b), 
+                    COND(lambda ge, eq, le: ge, signed), signed=signed )
 
 max = ge
 
 def le(signed):
-    code = config('l0dsooooo', o=0x5)
-    return PE( code, ALU(lambda a, b, c, d: a-b), 
-                     COND(lambda ge, eq, le: le, signed) )
+    # res = a <= b ? a : b (comparison should be signed/unsigned)
+    return PE( 0x5, ALU(lambda a, b, c, d: a-b), 
+                    COND(lambda ge, eq, le: le, signed), signed=signed )
 
 min = le
 
 def eq():
-    code = config('l0dsooooo', o=0x6)
-    return PE( code, ALU(lambda a, b, c, d: a-b), 
-                     COND(lambda ge, eq, le: eq) )
+    # res?
+    return PE( 0x6, ALU(lambda a, b, c, d: a-b), 
+                    COND(lambda ge, eq, le: eq) )
 
 
 def sel():
-    code = config('l0dsooooo', o=0x8)
-    return PE( code, ALU(lambda a, b, c, d: a if d else b) )
+    return PE( 0x8, ALU(lambda a, b, c, d: a if d else b) )
 
 def const(value):
-    code = config('l0dsooooo', o=0x0) # add
-    return PE( code, ALU(lambda a, b, c, d: a), raconst=value)
+    return PE( 0x0, ALU(lambda a, b, c, d: a) ).reg( ra=CONST, raconst=value )
 

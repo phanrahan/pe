@@ -1,6 +1,46 @@
-carry in and carry out
+double mode
 
-lut logic
+add
+sub
+- sub doesn't seem to handle carry correctly
 
-dual/double mode
+min
+max
+abs
+
+mult0
+mult1
+mult2
+div
+rem
+
+lut 
+  d, e, f
+
+counter
+
+questions
+- 3 input mode?
+- operation and flag
+  - ignore res
+  - ignore res_p
+
+microbenchmarks
+- sorting network
+  - min
+  - max
+- lfsr
+  - shift and xor w/ constant 
+- register file
+  - 2 registers and mux
+  - decoder w/ lut
+- soft core
+  - 4 bits to choose inst? 
+
+enhancements
+- cmp
+  - ge, lt
+  - eq, ne
+- tst
+  - z, nz
 
