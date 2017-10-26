@@ -1,7 +1,13 @@
 from .config import config
 from .pe import PE, ALU, COND, CONST
 
-__all__ = ['or_', 'and_', 'xor', 'inv']
+__all__  = ['or_', 'and_', 'xor', 'inv']
+__all__ += ['lshr', 'lshl', 'ashr']
+__all__ += ['add', 'sub']
+__all__ += ['min', 'max', 'abs']
+__all__ += ['ge', 'le']
+__all__ += ['sel']
+__all__ += ['const']
 
 def or_():
     return PE( 0x12, ALU(lambda a, b, c, d: a | b) )
@@ -14,6 +20,9 @@ def xor():
 
 def inv():
     return PE( 0x15, ALU(lambda a, b, c, d: ~a) )
+
+def neg():
+    return PE( 0x15, ALU(lambda a, b, c, d: ~a+b) ).regb(CONST, 1)
 
 
 def lshr():
@@ -67,5 +76,5 @@ def sel():
     return PE( 0x8, ALU(lambda a, b, c, d: a if d else b) )
 
 def const(value):
-    return PE( 0x0, ALU(lambda a, b, c, d: a) ).reg( ra=CONST, raconst=value )
+    return PE( 0x0, ALU(lambda a, b, c, d: a) ).rega( CONST, value )
 

@@ -1,0 +1,3 @@
+verilator -Wno-fatal --cc test_pe_comp_unq1 --exe sim_test_pe_comp_unq1.cpp
+make -C obj_dir -j -f Vtest_pe_comp_unq1.mk Vtest_pe_comp_unq1
+./obj_dir/Vtest_pe_comp_unq1

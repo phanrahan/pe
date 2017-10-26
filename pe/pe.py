@@ -13,13 +13,17 @@ DELAY = 3
 BITZERO = BitVector(0, num_bits=1)
 ZERO = BitVector(0, num_bits=DATAWIDTH)
 
+
 def msb(value):
     return value[-1]
+
 
 def signed(value):
     return BitVector(value._value, value.num_bits, signed=True)
 
+
 class Register:
+
     def __init__(self, mode, init, width):
         self.mode = mode
         self.value = BitVector(init, num_bits=width)
@@ -36,7 +40,9 @@ class Register:
             retvalue = self.value
         return retvalue
 
+
 class ALU:
+
     def __init__(self, op, signed=False, double=False):
         self.op = op
         self.signed = signed
@@ -47,9 +53,11 @@ class ALU:
             a = signed(a)
             b = signed(b)
             c = signed(c)
-        return self.op(a,b,c,d)
+        return self.op(a, b, c, d)
+
 
 class COND:
+
     def __init__(self, cond, signed=False):
         self.cond = cond
         self.signed = signed
@@ -70,11 +78,12 @@ class COND:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (a_msb & ~b_msb)) & 1
             le = int((~(a_msb ^ b_msb) & c_msb) | (~a_msb & b_msb) | eq) & 1
         return BitVector(ge, num_bits=1), \
-               BitVector(eq, num_bits=1), \
-               BitVector(le, num_bits=1)
+            BitVector(eq, num_bits=1), \
+            BitVector(le, num_bits=1)
 
 
 class PE:
+
     def __init__(self, opcode, alu=None, cond=None, signed=0):
         self.alu(opcode, signed, alu, cond)
         self.reg()
@@ -100,36 +109,61 @@ class PE:
         return res, res_p
 
     def alu(self, opcode, signed, op, cond):
-        self.opcode = config('0000000l0dsooooo', o=opcode, s=signed)
+        self.opcode = config('0000000l0dsoooooo', o=opcode, s=signed)
         self.op = op
         self.cond = cond
         return self
 
-    def reg(self, \
-        ra=BYPASS, raconst=0, \
-        rb=BYPASS, rbconst=0, \
-        rc=BYPASS, rcconst=0, \
-        rd=BYPASS, rdconst=0, \
-        re=BYPASS, reconst=0, \
-        rf=BYPASS, rfconst=0 ):
+    def reg(self):
+        self.regcode = 0
+        self.rega()
+        self.regb()
+        self.regc()
+        self.regd()
+        self.rege()
+        self.regf()
+        return self
 
-        self.regcode = config('00ffeedd00ccbbaa', \
-            a=ra, b=rb, c=rb, d=rd, e=re, f=rf )
+    def rega(self, regmode=BYPASS, regvalue=0):
+        self.RegA = Register(regmode, regvalue, DATAWIDTH)
+        self.raconst = regvalue
+        self.regcode &= ~(3 << 0)
+        self.regcode |= config('aa', a=regmode)
+        return self
 
-        self.RegA = Register(ra, raconst, DATAWIDTH)
-        self.RegB = Register(rb, rbconst, DATAWIDTH)
-        self.RegC = Register(rc, rcconst, DATAWIDTH)
-        self.RegD = Register(rd, rdconst, 1)
-        self.RegE = Register(re, reconst, 1)
-        self.RegF = Register(rf, rfconst, 1)
+    def regb(self, regmode=BYPASS, regvalue=0):
+        self.RegB = Register(regmode, regvalue, DATAWIDTH)
+        self.rbconst = regvalue
+        self.regcode &= ~(3 << 2)
+        self.regcode |= config('aa', a=regmode) << 2
+        return self
 
-        self.raconst = raconst
-        self.rbconst = rbconst
-        self.rcconst = rcconst
-        self.rdconst = rdconst
-        self.reconst = reconst
-        self.rfconst = rfconst
+    def regc(self, regmode=BYPASS, regvalue=0):
+        self.RegC = Register(regmode, regvalue, DATAWIDTH)
+        self.rcconst = regvalue
+        self.regcode &= ~(3 << 4)
+        self.regcode |= config('aa', a=regmode) << 4
+        return self
 
+    def regd(self, regmode=BYPASS, regvalue=0):
+        self.RegD = Register(regmode, regvalue, 1)
+        self.rdconst = regvalue
+        self.regcode &= ~(3 << 8)
+        self.regcode |= config('aa', a=regmode) << 8
+        return self
+
+    def rege(self, regmode=BYPASS, regvalue=0):
+        self.RegE = Register(regmode, regvalue, 1)
+        self.reconst = regvalue
+        self.regcode &= ~(3 << 10)
+        self.regcode |= config('aa', a=regmode) << 10
+        return self
+
+    def regf(self, regmode=BYPASS, regvalue=0):
+        self.RegF = Register(regmode, regvalue, 1)
+        self.rfconst = regvalue
+        self.regcode &= ~(3 << 12)
+        self.regcode |= config('aa', a=regmode) << 12
         return self
 
     def lut(self, table=None):
@@ -148,4 +182,3 @@ class PE:
         self.x = x
         self.y = y
         return self
-
