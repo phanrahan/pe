@@ -1,23 +1,13 @@
-double mode
-
-add
-sub
-- sub doesn't seem to handle carry correctly
-
-min
-max
-abs
+cross-reference  op and opcode
+coreir version
 
 mult0
 mult1
 mult2
-div
-rem
 
 lut 
   d, e, f
 
-counter
 
 questions
 - 3 input mode?
@@ -43,4 +33,11 @@ enhancements
   - eq, ne
 - tst
   - z, nz
+
+sub
+- sub doesn't seem to handle carry correctly
+
+counter
+
+double mode
 

@@ -68,9 +68,10 @@ class COND:
 
     def compare(self, a, b, res):
         eq = a == b
+        eq = eq.as_int()
         a_msb = msb(a)
         b_msb = msb(b)
-        res_msb = msb(res)
+        c_msb = msb(res)
         if self.signed:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (~a_msb & b_msb)) & 1
             te = int((~(a_msb ^ b_msb) & c_msb) | (a_msb & ~b_msb) | eq) & 1
@@ -78,14 +79,15 @@ class COND:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (a_msb & ~b_msb)) & 1
             le = int((~(a_msb ^ b_msb) & c_msb) | (~a_msb & b_msb) | eq) & 1
         return BitVector(ge, num_bits=1), \
-            BitVector(eq, num_bits=1), \
-            BitVector(le, num_bits=1)
+               BitVector(eq, num_bits=1), \
+               BitVector(le, num_bits=1)
 
 
 class PE:
 
-    def __init__(self, opcode, alu=None, cond=None, signed=0):
-        self.alu(opcode, signed, alu, cond)
+    def __init__(self, opcode, alu=None, signed=0):
+        self.alu(opcode, signed, alu)
+        self.cond()
         self.reg()
         self.place()
 
@@ -99,19 +101,38 @@ class PE:
         rf = self.RegF(f)
 
         res = ZERO
-        if self.op:
-            res = self.op(ra, rb, rc, rd).as_int()
-
         res_p = BITZERO
-        if self.cond:
-            res_p = self.cond(a, b, res).as_int()
 
-        return res, res_p
+        if self._add:
+            add = self._add(ra, rb, rc, rd)
 
-    def alu(self, opcode, signed, op, cond):
+        if self._alu:
+            res = self._alu(ra, rb, rc, rd)
+            if isinstance(res, tuple):
+                res = res[0]
+                res_p = res[1]
+
+        if self._cond:
+            res_p = self._cond(ra, rb, add)
+
+        return res.as_int(), res_p.as_int()
+
+    def alu(self, opcode, signed, _alu):
         self.opcode = config('0000000l0dsoooooo', o=opcode, s=signed)
-        self.op = op
-        self.cond = cond
+        self.signed = signed
+        self._alu = ALU(_alu, signed=signed)
+        return self
+
+    def add(self, _add=None):
+        self._add = _add
+        return self
+
+    def cond(self, _cond=None):
+        self._add = None
+        self._cond = None
+        if _cond:
+            self.add(lambda a, b, c, d: a-b if _cond else None)
+            self._cond = COND(_cond, self.signed)
         return self
 
     def reg(self):
@@ -166,8 +187,8 @@ class PE:
         self.regcode |= config('aa', a=regmode) << 12
         return self
 
-    def lut(self, table=None):
-        self.lut = table
+    def lut(self, _lut=None):
+        self.lut = _lut
         if self.lut:
             self.opcode |= 1 << 9
         else:

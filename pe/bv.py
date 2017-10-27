@@ -27,15 +27,18 @@ class BitVector:
         self.num_bits = num_bits
 
     def __and__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         return BitVector(self._value & other._value, num_bits=self.num_bits)
 
     def __or__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         return BitVector(self._value | other._value, num_bits=self.num_bits)
 
     def __xor__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         return BitVector(self._value ^ other._value, num_bits=self.num_bits)
 
     def __lshift__(self, other):
@@ -79,52 +82,61 @@ class BitVector:
                 raise ValueError("Cannot shift by negative value {}".format(other))
             shift_result = self._value >> other._value
         mask = (1 << self.num_bits) - 1
-        return BitVector(shift_result & mask, num_bits=self.num_bits)
+        return BitVector(shift_result & mask, num_bits=self.num_bits, signed=True)
 
     def __add__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         result = self._value + other._value
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
     def __sub__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         result = self._value - other._value
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
     def __mul__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         result = self._value * other._value
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
     def __div__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         result = self._value // other._value
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
     def __truediv__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         result = self._value // other._value
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
     def __lt__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         return BitVector(int(self._value < other._value), num_bits=1)
 
     def __le__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         return BitVector(int(self._value <= other._value), num_bits=1)
 
     def __gt__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         return BitVector(int(self._value > other._value), num_bits=1)
 
     def __ge__(self, other):
-        assert isinstance(other, BitVector)
+        if not isinstance(other, BitVector):
+            other = BitVector(other, self.num_bits)
         return BitVector(int(self._value >= other._value), num_bits=1)
 
     def as_int(self):
@@ -166,8 +178,6 @@ class BitVector:
         raise NotImplementedError(type(other))
 
     def __neg__(self):
-        if not self.signed:
-            raise TypeError("Cannot call __neg__ on unsigned BitVector")
         return BitVector(-self._value, num_bits=self.num_bits, signed=True)
 
     def __bool__(self):
