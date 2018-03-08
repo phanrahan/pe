@@ -49,7 +49,7 @@ def sub():
 
 def eq():
     # res?
-    return PE( 0x6, lambda a, b, c, d: a-b ).cond( lambda ge, eq, le: eq )
+    return PE( 0x6, lambda a, b, c, d: a+b ).cond( lambda ge, eq, le: eq )
 
 def ge(signed):
     # res = a >= b ? a : b (comparison should be signed/unsigned)
