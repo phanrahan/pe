@@ -29,6 +29,10 @@ class Register:
         self.value = BitVector(init, num_bits=width)
         self.width = width
 
+    @property
+    def const(self):
+        return self.mode == CONST
+
     def __call__(self, value):
         if not isinstance(value, BitVector):
             value = BitVector(value, self.width)

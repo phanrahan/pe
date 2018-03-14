@@ -65,7 +65,7 @@ min = le
 
 def abs():
     # res = abs(a-b) + c
-    return PE( 0x3, lambda a, b, c, d: a if a >= 0 else ~a+1 )
+    return PE( 0x3, lambda a, b, c, d: a if a >= 0 else ~a+1 ).regb(CONST, 0)
 
 
 def sel():
