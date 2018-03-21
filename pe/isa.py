@@ -74,7 +74,7 @@ def abs():
 
 
 def sel():
-    return PE( 0x8, lambda a, b, c, d: b if d else a )
+    return PE( 0x8, lambda a, b, c, d: a if d else b )
 
 def const(value):
     return PE( 0x0, lambda a, b, c, d: a ).rega( CONST, value )
