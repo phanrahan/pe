@@ -29,7 +29,7 @@ def neg():
 
 def lshr():
     # b[3:0]
-    return PE( 0xf, lambda a, b, c, d: a >> b )
+    return PE( 0xf, lambda a, b, c, d: a >> b[:4] ).cond( lambda ge, eq, le, C: C )
 
 def ashr():
     # b[3:0]
@@ -37,7 +37,7 @@ def ashr():
 
 def lshl():
     # b[3:0]
-    return PE( 0x11, lambda a, b, c, d: a << b )
+    return PE( 0x11, lambda a, b, c, d: a << b[:4] ).cond( lambda ge, eq, le, C: C )
 
 
 def add():
@@ -70,11 +70,13 @@ min = le
 
 def abs():
     # res = abs(a-b) + c
-    return PE( 0x3, lambda a, b, c, d: a if a >= 0 else ~a+1 ).regb(CONST, 0)
+    def _abs(a, b, c, d):
+        return a if a >= 0 else ~a+1, a[15]
+    return PE( 0x3, _abs ).regb(CONST, 0)
 
 
 def sel():
-    return PE( 0x8, lambda a, b, c, d: a if d else b )
+    return PE( 0x8, lambda a, b, c, d: a if d else b ).cond( lambda ge, eq, le, C: C )
 
 def const(value):
     return PE( 0x0, lambda a, b, c, d: a ).rega( CONST, value )

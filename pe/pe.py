@@ -89,9 +89,9 @@ class COND:
         #        BitVector(eq, num_bits=1), \
         #        BitVector(le, num_bits=1), \
         #        C,  \
-        return a >= b, \
+        return signed(a) >= signed(b) if signed else a >= b, \
                a == b, \
-               a <= b, \
+               signed(a) <= signed(b) if signed else a <= b, \
                C,  \
 
 
