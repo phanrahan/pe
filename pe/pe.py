@@ -47,17 +47,19 @@ class Register:
 
 class ALU:
 
-    def __init__(self, op, signed=False, double=False):
+    def __init__(self, op, opcode, width, signed=False, double=False):
         self.op = op
         self.signed = signed
         self.double = double
+        self.opcode = opcode
+        self.width = width
 
-    def __call__(self, a, b, c, d):
+    def __call__(self, *args):
+        args = [arg if isinstance(arg, BitVector) else BitVector(arg, self.width) for arg in args]
         if self.signed:
-            a = signed(a)
-            b = signed(b)
-            c = signed(c)
-        return self.op(a, b, c, d)
+            args = [signed(arg) for arg in args]
+        result = self.op(*args)
+        return result
 
 
 class COND:
@@ -76,17 +78,21 @@ class COND:
         a_msb = msb(a)
         b_msb = msb(b)
         c_msb = msb(res)
-        Z = res == 0
+        C = BitVector(a.as_int() + b.as_int() >= (2 ** DATAWIDTH), 1)
         if self.signed:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (~a_msb & b_msb)) & 1
             le = int((~(a_msb ^ b_msb) & c_msb) | (a_msb & ~b_msb) | eq) & 1
         else:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (a_msb & ~b_msb)) & 1
             le = int((~(a_msb ^ b_msb) & c_msb) | (~a_msb & b_msb) | eq) & 1
-        return BitVector(ge, num_bits=1), \
-               BitVector(eq, num_bits=1), \
-               BitVector(le, num_bits=1), \
-               BitVector(Z, num_bits=1)
+        # return BitVector(ge, num_bits=1), \
+        #        BitVector(eq, num_bits=1), \
+        #        BitVector(le, num_bits=1), \
+        #        C,  \
+        return a >= b, \
+               a == b, \
+               a <= b, \
+               C,  \
 
 
 class PE:
@@ -115,18 +121,17 @@ class PE:
         if self._alu:
             res = self._alu(ra, rb, rc, rd)
             if isinstance(res, tuple):
-                res = res[0]
-                res_p = res[1]
+                res, res_p = res[0], res[1]
 
         if self._cond:
-            res_p = self._cond(ra, rb, add)
+            res_p = self._cond(ra, rb, res)
 
-        return res.as_int(), res_p.as_int()
+        return res.as_int(), res_p.as_int() if isinstance(res_p, BitVector) else res_p
 
     def alu(self, opcode, signed, _alu):
         self.opcode = config('0000000l0dsoooooo', o=opcode, s=signed)
         self.signed = signed
-        self._alu = ALU(_alu, signed=signed)
+        self._alu = ALU(_alu, opcode, DATAWIDTH, signed=signed)
         return self
 
     def add(self, _add=None):
@@ -137,7 +142,7 @@ class PE:
         self._add = None
         self._cond = None
         if _cond:
-            self.add(lambda a, b, c, d: a-b if _cond else None)
+            self.add(lambda a, b, c, d: a+b if _cond else None)
             self._cond = COND(_cond, self.signed)
         return self
 

@@ -1,5 +1,6 @@
 from .config import config
 from .pe import PE, CONST
+from .bv import BitVector
 
 __all__  = ['or_', 'and_', 'xor', 'inv']
 __all__ += ['lshr', 'lshl', 'ashr']
@@ -10,13 +11,13 @@ __all__ += ['sel']
 __all__ += ['const']
 
 def or_():
-    return PE( 0x12, lambda a, b, c, d: a | b)
+    return PE( 0x12, lambda a, b, c, d: a | b).cond(lambda ge, eq, le, C: C)
 
 def and_():
-    return PE( 0x13, lambda a, b, c, d: a & b )
+    return PE( 0x13, lambda a, b, c, d: a & b ).cond(lambda ge, eq, le, C: C)
 
 def xor():
-    return PE( 0x14, lambda a, b, c, d: a ^ b )
+    return PE( 0x14, lambda a, b, c, d: a ^ b ).cond(lambda ge, eq, le, C: C)
 
 def inv():
     return PE( 0x15, lambda a, b, c, d: ~a )
@@ -40,11 +41,14 @@ def lshl():
 
 def add():
     # res_p = cout
-    return PE( 0x0, lambda a, b, c, d: a + b + d )
+    return PE( 0x0, lambda a, b, c, d: a + b + d ).cond(lambda ge, eq, le, C: C)
 
 def sub():
-    # res = (a - b) + c
-    return PE( 0x1, lambda a, b, c, d: a - b + d ).cond(lambda ge, eq, le, Z: Z)
+    def _sub(a, b, c, d):
+        res_p = BitVector(a, a.num_bits + 1) + BitVector(~b, b.num_bits + 1) + 1 >= 2 ** 16
+        print(res_p)
+        return a - b + d, res_p
+    return PE( 0x1, _sub)
 
 
 def eq():
@@ -54,13 +58,13 @@ def eq():
 
 def ge(signed):
     # res = a >= b ? a : b (comparison should be signed/unsigned)
-    return PE( 0x4, lambda a, b, c, d: a if a >= b else b, signed=signed ).cond( lambda ge, eq, le, Z: ge ) 
+    return PE( 0x4, lambda a, b, c, d: a if a >= b else b, signed=signed ).cond( lambda ge, eq, le, C: ge ) 
 
 max = ge
 
 def le(signed):
     # res = a <= b ? a : b 
-    return PE( 0x5, lambda a, b, c, d: a if a <= b else b, signed=signed ).cond( lambda ge, eq, le, Z: le )
+    return PE( 0x5, lambda a, b, c, d: a if a <= b else b, signed=signed ).cond( lambda ge, eq, le, C: le )
 
 min = le
 
