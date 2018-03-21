@@ -9,6 +9,7 @@ __all__ += ['min', 'max', 'abs']
 __all__ += ['eq', 'ge', 'le']
 __all__ += ['sel']
 __all__ += ['const']
+__all__ += ['mul0', 'mul1', 'mul2']
 
 def or_():
     return PE( 0x12, lambda a, b, c, d: a | b).cond(lambda ge, eq, le, C: C)
@@ -46,8 +47,7 @@ def add():
 def sub():
     def _sub(a, b, c, d):
         res_p = BitVector(a, a.num_bits + 1) + BitVector(~b, b.num_bits + 1) + 1 >= 2 ** 16
-        print(res_p)
-        return a - b + d, res_p
+        return a - b, res_p
     return PE( 0x1, _sub)
 
 
@@ -79,3 +79,19 @@ def sel():
 def const(value):
     return PE( 0x0, lambda a, b, c, d: a ).rega( CONST, value )
 
+def mul0():
+    def _mul(a, b, c, d):
+        res_p = BitVector(a, 17) * BitVector(b, 17) + BitVector(c, 17)
+        return a * b, res_p >= 2 ** 16
+    return PE(0xb, _mul)
+
+def mul1():
+    def _mul(a, b, c, d):
+        res_p = BitVector(a, 24) * BitVector(b, 24) + c
+        return (BitVector(a, 24) * BitVector(b, 24))[8:], res_p >= 2 ** 24
+    return PE(0xc, _mul)
+
+def mul2():
+    def _mul(a, b, c, d):
+        return (BitVector(a, 32) * BitVector(b, 32))[16:], 0
+    return PE(0xd, _mul)
