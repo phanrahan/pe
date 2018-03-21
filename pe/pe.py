@@ -67,8 +67,8 @@ class COND:
         self.signed = signed
 
     def __call__(self, a, b, res):
-        ge, eq, le = self.compare(a, b, res)
-        return self.cond(ge, eq, le)
+        return_vals = self.compare(a, b, res)
+        return self.cond(*return_vals)
 
     def compare(self, a, b, res):
         eq = a == b
@@ -76,6 +76,7 @@ class COND:
         a_msb = msb(a)
         b_msb = msb(b)
         c_msb = msb(res)
+        Z = res == 0
         if self.signed:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (~a_msb & b_msb)) & 1
             le = int((~(a_msb ^ b_msb) & c_msb) | (a_msb & ~b_msb) | eq) & 1
@@ -84,7 +85,8 @@ class COND:
             le = int((~(a_msb ^ b_msb) & c_msb) | (~a_msb & b_msb) | eq) & 1
         return BitVector(ge, num_bits=1), \
                BitVector(eq, num_bits=1), \
-               BitVector(le, num_bits=1)
+               BitVector(le, num_bits=1), \
+               BitVector(Z, num_bits=1)
 
 
 class PE:

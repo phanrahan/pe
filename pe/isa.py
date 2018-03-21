@@ -44,22 +44,23 @@ def add():
 
 def sub():
     # res = (a - b) + c
-    return PE( 0x1, lambda a, b, c, d: a - b + d )
+    return PE( 0x1, lambda a, b, c, d: a - b + d ).cond(lambda ge, eq, le, Z: Z)
 
 
 def eq():
+    raise NotImplementedError("eq should use sub with Z flag")
     # res?
-    return PE( 0x6, lambda a, b, c, d: a+b ).cond( lambda ge, eq, le: eq )
+    # return PE( 0x6, lambda a, b, c, d: a+b ).cond( lambda ge, eq, le: eq )
 
 def ge(signed):
     # res = a >= b ? a : b (comparison should be signed/unsigned)
-    return PE( 0x4, lambda a, b, c, d: a if a >= b else b, signed=signed ).cond( lambda ge, eq, le: ge ) 
+    return PE( 0x4, lambda a, b, c, d: a if a >= b else b, signed=signed ).cond( lambda ge, eq, le, Z: ge ) 
 
 max = ge
 
 def le(signed):
     # res = a <= b ? a : b 
-    return PE( 0x5, lambda a, b, c, d: a if a <= b else b, signed=signed ).cond( lambda ge, eq, le: le )
+    return PE( 0x5, lambda a, b, c, d: a if a <= b else b, signed=signed ).cond( lambda ge, eq, le, Z: le )
 
 min = le
 
