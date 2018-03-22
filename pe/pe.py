@@ -53,13 +53,22 @@ class ALU:
         self.double = double
         self.opcode = opcode
         self.width = width
+        self._carry = False
 
-    def __call__(self, *args):
-        args = [arg if isinstance(arg, BitVector) else BitVector(arg, self.width) for arg in args]
-        if self.signed:
-            args = [signed(arg) for arg in args]
-        result = self.op(*args)
-        return result
+    def __call__(self, a=0, b=0, c=0, d=0):
+        a = BitVector(a, self.width, self.signed)
+        b = BitVector(b, self.width, self.signed)
+        c = BitVector(c, self.width, self.signed)
+        d = BitVector(d, self.width, self.signed)
+        res = self.op(a, b, c, d)
+        if self._carry:
+            res_p = BitVector(a.as_int() + b.as_int() >= (2 ** self.width), 1)
+            return res, res_p
+        return res
+
+
+    def carry(self):
+        self._carry = True
 
 
 class COND:
@@ -136,6 +145,10 @@ class PE:
 
     def add(self, _add=None):
         self._add = _add
+        return self
+
+    def carry(self):
+        self._alu.carry()
         return self
 
     def cond(self, _cond=None):
