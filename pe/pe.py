@@ -87,21 +87,15 @@ class COND:
         a_msb = msb(a)
         b_msb = msb(b)
         c_msb = msb(res)
-        C = BitVector(a.as_int() + b.as_int() >= (2 ** DATAWIDTH), 1)
         if self.signed:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (~a_msb & b_msb)) & 1
             le = int((~(a_msb ^ b_msb) & c_msb) | (a_msb & ~b_msb) | eq) & 1
         else:
             ge = int((~(a_msb ^ b_msb) & ~c_msb) | (a_msb & ~b_msb)) & 1
             le = int((~(a_msb ^ b_msb) & c_msb) | (~a_msb & b_msb) | eq) & 1
-        # return BitVector(ge, num_bits=1), \
-        #        BitVector(eq, num_bits=1), \
-        #        BitVector(le, num_bits=1), \
-        #        C,  \
-        return signed(a) >= signed(b) if signed else a >= b, \
-               a == b, \
-               signed(a) <= signed(b) if signed else a <= b, \
-               C,  \
+        return BitVector(ge, num_bits=1), \
+               BitVector(eq, num_bits=1), \
+               BitVector(le, num_bits=1), \
 
 
 class PE:

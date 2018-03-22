@@ -62,7 +62,7 @@ def ge(signed):
         res = a if a >= b else b
         res_p = a >= b
         return res, res_p
-    return PE( 0x4, _ge, signed=signed ).cond( lambda ge, eq, le, C: ge ) 
+    return PE( 0x4, _ge, signed=signed ).cond( lambda ge, eq, le: ge ) 
 
 max = ge
 
@@ -72,7 +72,7 @@ def le(signed):
         res = a if a <= b else b
         res_p = a <= b
         return res, res_p
-    return PE( 0x5, _le, signed=signed ).cond( lambda ge, eq, le, C: le )
+    return PE( 0x5, _le, signed=signed ).cond( lambda ge, eq, le: le )
 
 min = le
 
@@ -89,11 +89,11 @@ def sel():
 def const(value):
     return PE( 0x0, lambda a, b, c, d: a ).rega( CONST, value )
 
-def mul0():
+def mul2():
     def _mul(a, b, c, d):
         res_p = BitVector(a, 17) * BitVector(b, 17) + BitVector(c, 17)
         return a * b, res_p >= 2 ** 16
-    return PE(0xb, _mul)
+    return PE(0xd, _mul)
 
 def mul1():
     def _mul(a, b, c, d):
@@ -101,7 +101,7 @@ def mul1():
         return (BitVector(a, 24) * BitVector(b, 24))[8:], res_p >= 2 ** 24
     return PE(0xc, _mul)
 
-def mul2():
+def mul0():
     def _mul(a, b, c, d):
         return (BitVector(a, 32) * BitVector(b, 32))[16:], 0
-    return PE(0xd, _mul)
+    return PE(0xb, _mul)
