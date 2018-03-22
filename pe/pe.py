@@ -98,6 +98,7 @@ class COND:
                BitVector(le, num_bits=1), \
 
 
+
 class PE:
 
     def __init__(self, opcode, alu=None, signed=0):
@@ -105,6 +106,7 @@ class PE:
         self.cond()
         self.reg()
         self.place()
+        self.flag_sel = (opcode >> 12 & (1 << 4 - 1))
 
     def __call__(self, a, b=0, c=0, d=0, e=0, f=0):
 
@@ -124,12 +126,23 @@ class PE:
         if self._alu:
             res = self._alu(ra, rb, rc, rd)
             if isinstance(res, tuple):
-                res, res_p = res[0], res[1]
+                res, alu_res_p = res[0], res[1]
 
-        if self._cond:
-            res_p = self._cond(ra, rb, res)
+        res_p = self.get_flag(ra, rb, rc, rd, res, alu_res_p)
+        if not isinstance(res_p, BitVector):
+            assert res_p in {0, 1}
+            res_p = BitVector(res_p, 1)
+        # if self._cond:
+        #     res_p = self._cond(ra, rb, res)
 
-        return res.as_int(), res_p.as_int() if isinstance(res_p, BitVector) else res_p
+        return res.as_int(), res_p.as_int()
+
+    def get_flag(self, ra, rb, rc, rd, alu_res, alu_res_p):
+        if self.flag_sel == 0x0:
+            return alu_res == 0
+        elif self.flag_sel == 0x1:
+            return alu_res != 0
+        raise NotImplementedError()
 
     def alu(self, opcode, signed, _alu):
         self.opcode = config('0000000l0dsoooooo', o=opcode, s=signed)
