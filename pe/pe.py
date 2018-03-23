@@ -56,10 +56,10 @@ class ALU:
         self._carry = False
 
     def __call__(self, a=0, b=0, c=0, d=0):
-        a = BitVector(a, self.width, self.signed)
-        b = BitVector(b, self.width, self.signed)
-        c = BitVector(c, self.width, self.signed)
-        d = BitVector(d, self.width, self.signed)
+        a = BitVector(a, num_bits=self.width, signed=self.signed)
+        b = BitVector(b, num_bits=self.width, signed=self.signed)
+        c = BitVector(c, num_bits=self.width, signed=self.signed)
+        d = BitVector(d, num_bits=self.width, signed=self.signed)
         res = self.op(a, b, c, d)
         if self._carry:
             res_p = BitVector(a.as_int() + b.as_int() >= (2 ** self.width), 1)
