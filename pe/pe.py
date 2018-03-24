@@ -55,11 +55,11 @@ class ALU:
         self.width = width
         self._carry = False
 
-    def __call__(self, a=0, b=0, c=0, d=0):
-        a = BitVector(a, num_bits=self.width, signed=self.signed)
-        b = BitVector(b, num_bits=self.width, signed=self.signed)
+    def __call__(self, op_a=0, op_b=0, c=0, op_d_p=0):
+        a = BitVector(op_a, num_bits=self.width, signed=self.signed)
+        b = BitVector(op_b, num_bits=self.width, signed=self.signed)
         c = BitVector(c, num_bits=self.width, signed=self.signed)
-        d = BitVector(d, num_bits=self.width, signed=self.signed)
+        d = BitVector(op_d_p, num_bits=self.width, signed=self.signed)
         res = self.op(a, b, c, d)
         if self._carry:
             res_p = BitVector(a.as_int() + b.as_int() >= (2 ** self.width), 1)
@@ -106,9 +106,9 @@ class PE:
         self.cond()
         self.reg()
         self.place()
-        self.flag_sel = (opcode >> 12 & (1 << 4 - 1))
+        self.flag_sel = (opcode >> 12) & 0xF
 
-    def __call__(self, a, b=0, c=0, d=0, e=0, f=0):
+    def __call__(self, a, b=0, c=0, d=0, e=0, f=0, bit1=0, bit2=0):
 
         ra = self.RegA(a)
         rb = self.RegB(b)
@@ -128,21 +128,59 @@ class PE:
             if isinstance(res, tuple):
                 res, alu_res_p = res[0], res[1]
 
-        res_p = self.get_flag(ra, rb, rc, rd, res, alu_res_p)
+        lut_out = self.lut(d, bit1, bit2)
+
+        res_p = self.get_flag(ra, rb, rc, rd, res, alu_res_p, lut_out)
         if not isinstance(res_p, BitVector):
-            assert res_p in {0, 1}
+            assert res_p in {0, 1}, res_p
             res_p = BitVector(res_p, 1)
         # if self._cond:
         #     res_p = self._cond(ra, rb, res)
 
         return res.as_int(), res_p.as_int()
 
-    def get_flag(self, ra, rb, rc, rd, alu_res, alu_res_p):
+    def get_flag(self, ra, rb, rc, rd, alu_res, alu_res_p, lut_out):
+        Z = alu_res == 0
+        C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17))[16]
+        N = alu_res[15]
+        # print(ra.bit_string(), rb.bit_string(), (ra + rb).bit_string())
+        # print(ra[15] == rb[15], ra[15], (ra + rb)[15] )
+        V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15] )
+        if self.opcode & 0xFF in [0x12, 0x13, 0x14]:  # and, or, xor clear overflow flag
+            V = 0
         if self.flag_sel == 0x0:
-            return alu_res == 0
+            return Z
         elif self.flag_sel == 0x1:
-            return alu_res != 0
-        raise NotImplementedError()
+            return not Z
+        elif self.flag_sel == 0x2:
+            return C
+        elif self.flag_sel == 0x3:
+            return not C
+        elif self.flag_sel == 0x4:
+            return N
+        elif self.flag_sel == 0x5:
+            return not N
+        elif self.flag_sel == 0x6:
+            return V
+        elif self.flag_sel == 0x7:
+            return not V
+        elif self.flag_sel == 0x8:
+            return C and not Z
+        elif self.flag_sel == 0x9:
+            return not C or Z
+        elif self.flag_sel == 0xA:
+            return N == V
+        elif self.flag_sel == 0xB:
+            return N != V
+        elif self.flag_sel == 0xC:
+            return not Z and (N == V)
+        elif self.flag_sel == 0xD:
+            return Z or (N != V)
+        elif self.flag_sel == 0xE:
+            return lut_out
+        elif self.flag_sel == 0xF:
+            return alu_res_p
+        raise NotImplementedError(self.flag_sel)
 
     def alu(self, opcode, signed, _alu):
         self.opcode = config('0000000l0dsoooooo', o=opcode, s=signed)
@@ -218,12 +256,15 @@ class PE:
         self.regcode |= config('aa', a=regmode) << 12
         return self
 
-    def lut(self, _lut=None):
+    def lut(self, code=None):
+        def _lut(bit0, bit1, bit2):
+            idx = (bit2 << 2) | (bit1 << 1) | bit0
+            return (code >> idx) & 1
         self.lut = _lut
-        if self.lut:
-            self.opcode |= 1 << 9
-        else:
-            self.opcode &= ~(1 << 9)
+        # if self.lut:
+        #     self.opcode |= 1 << 9
+        # else:
+        #     self.opcode &= ~(1 << 9)
         return self
 
     def dual(self):
