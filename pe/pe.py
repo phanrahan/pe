@@ -109,14 +109,14 @@ class PE:
         self.flag_sel = (opcode >> 12) & 0xF
         self._lut = None
 
-    def __call__(self, a, b=0, c=0, d=0, e=0, f=0, bit1=0, bit2=0):
+    def __call__(self, data0=0, data1=0, c=0, bit0=0, bit1=0, bit2=0):
 
-        ra = self.RegA(a)
-        rb = self.RegB(b)
+        ra = self.RegA(data0)
+        rb = self.RegB(data1)
         rc = self.RegC(c)
-        rd = self.RegD(d)
-        re = self.RegE(e)
-        rf = self.RegF(f)
+        rd = self.RegD(bit0)
+        re = self.RegE(bit1)
+        rf = self.RegF(bit2)
 
         res = ZERO
         res_p = BITZERO
@@ -131,7 +131,7 @@ class PE:
 
         lut_out = BITZERO
         if self._lut:
-            lut_out = self._lut(d, bit1, bit2)
+            lut_out = self._lut(rd, re, rf)
 
         res_p = self.get_flag(ra, rb, rc, rd, res, alu_res_p, lut_out)
         if not isinstance(res_p, BitVector):
@@ -261,7 +261,7 @@ class PE:
 
     def lut(self, code=None):
         def _lut(bit0, bit1, bit2):
-            idx = (bit2 << 2) | (bit1 << 1) | bit0
+            idx = (bit2.as_int() << 2) | (bit1.as_int() << 1) | bit0.as_int()
             return (code >> idx) & 1
         self._lut = _lut
         # if self.lut:
