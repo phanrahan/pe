@@ -107,6 +107,7 @@ class PE:
         self.reg()
         self.place()
         self.flag_sel = (opcode >> 12) & 0xF
+        self._lut = None
 
     def __call__(self, a, b=0, c=0, d=0, e=0, f=0, bit1=0, bit2=0):
 
@@ -128,7 +129,9 @@ class PE:
             if isinstance(res, tuple):
                 res, alu_res_p = res[0], res[1]
 
-        lut_out = self.lut(d, bit1, bit2)
+        lut_out = BITZERO
+        if self._lut:
+            lut_out = self._lut(d, bit1, bit2)
 
         res_p = self.get_flag(ra, rb, rc, rd, res, alu_res_p, lut_out)
         if not isinstance(res_p, BitVector):
@@ -260,7 +263,7 @@ class PE:
         def _lut(bit0, bit1, bit2):
             idx = (bit2 << 2) | (bit1 << 1) | bit0
             return (code >> idx) & 1
-        self.lut = _lut
+        self._lut = _lut
         # if self.lut:
         #     self.opcode |= 1 << 9
         # else:
