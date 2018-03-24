@@ -144,12 +144,14 @@ class PE:
 
     def get_flag(self, ra, rb, rc, rd, alu_res, alu_res_p, lut_out):
         Z = alu_res == 0
-        C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17))[16]
-        N = alu_res[15]
-        # print(ra.bit_string(), rb.bit_string(), (ra + rb).bit_string())
-        # print(ra[15] == rb[15], ra[15], (ra + rb)[15] )
-        V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15] )
-        if self.opcode & 0xFF in [0x12, 0x13, 0x14]:  # and, or, xor clear overflow flag
+        if self.opcode & 0xFF == 0x1: # sub
+            C = (BitVector(ra, num_bits=17) + BitVector(~rb, num_bits=17) + 1)[16]
+        else:
+            C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17))[16]
+        N = alu_res[0]
+        V = (ra[0] == rb[0]) and (ra[0] != (ra + rb)[0] )
+        if self.opcode & 0xFF in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
+                                  0xf, 0x11]:  # lshl, lshr
             V = 0
         if self.flag_sel == 0x0:
             return Z

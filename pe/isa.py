@@ -48,7 +48,7 @@ def sub(flag_sel=0):
     def _sub(a, b, c, d):
         res_p = BitVector(a, a.num_bits + 1) + BitVector(~b, b.num_bits + 1) + 1 >= 2 ** 16
         return a - b, res_p
-    return PE( 0x1, _sub)
+    return PE( 0x1 | flag_sel << 12, _sub)
 
 
 def eq(flag_sel):
