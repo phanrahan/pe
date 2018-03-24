@@ -150,9 +150,9 @@ class PE:
             C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17))[16]
         N = alu_res[15]
         V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15] )
-        # if self.opcode & 0xFF in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
-        #                           0xf, 0x11]:  # lshl, lshr
-        #     V = 0
+        if self.opcode & 0xFF in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
+                                  0xf, 0x11]:  # lshl, lshr
+            V = 0
         if self.flag_sel == 0x0:
             return Z
         elif self.flag_sel == 0x1:
