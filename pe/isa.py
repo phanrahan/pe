@@ -42,7 +42,10 @@ def lshl(flag_sel=0):
 
 def add(flag_sel=0):
     # res_p = cout
-    return PE( 0x0 | flag_sel << 12, lambda a, b, c, d: a + b + d ).carry()
+    def _add(a, b, c, d):
+        res_p = BitVector(a, a.num_bits + 1) + BitVector(b, b.num_bits + 1) + d >= 2 ** 16
+        return a + b + d, res_p
+    return PE( 0x0 | flag_sel << 12, _add)
 
 def sub(flag_sel=0):
     def _sub(a, b, c, d):
