@@ -158,7 +158,7 @@ class PE:
         elif self.opcode & 0xFF == 0x1: # sub
             V = (ra[15] != rb[15]) and (ra[15] != (ra + ~rb + 1)[15])
         elif self.opcode & 0xFF == 0x3: # abs
-            V = (ra[15] != (~ra + 1)[15])
+            V = (~ra + 1)[15]
         else:
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15])
         if self.opcode & 0xFF in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
