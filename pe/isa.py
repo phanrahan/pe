@@ -91,19 +91,17 @@ def sel(flag_sel=0):
 def const(value):
     return PE( 0x0 | flag_sel << 12, lambda a, b, c, d: a ).rega( CONST, value )
 
-def mul2(flag_sel=0):
+def mul0(flag_sel=0):
     def _mul(a, b, c, d):
-        res_p = BitVector(a, 17) * BitVector(b, 17) + BitVector(c, 17)
-        return a * b, res_p >= 2 ** 16
-    return PE(0xd, _mul)
+        return a * b, 0
+    return PE(0xb, _mul)
 
 def mul1(flag_sel=0):
     def _mul(a, b, c, d):
-        res_p = BitVector(a, 25) * BitVector(b, 25) + c
-        return (BitVector(a, 24) * BitVector(b, 24))[8:], res_p >= 2 ** 24
+        return (BitVector(a, 24) * BitVector(b, 24))[8:], 0
     return PE(0xc, _mul)
 
-def mul0(flag_sel=0):
+def mul2(flag_sel=0):
     def _mul(a, b, c, d):
         return (BitVector(a, 32) * BitVector(b, 32))[16:], 0
-    return PE(0xb, _mul)
+    return PE(0xd, _mul)
