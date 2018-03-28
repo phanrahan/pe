@@ -107,6 +107,7 @@ class PE:
         self.reg()
         self.place()
         self._lut = None
+        self.flag_sel = 0x0
 
     def __call__(self, data0=0, data1=0, c=0, bit0=0, bit1=0, bit2=0):
 
