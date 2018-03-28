@@ -65,7 +65,7 @@ def ge(signed):
         res = a if a >= b else b
         res_p = a >= b
         return res, res_p
-    return PE( 0x4 )
+    return PE( 0x4, _ge, signed=signed )
 
 max = ge
 
