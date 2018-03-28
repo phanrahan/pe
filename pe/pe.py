@@ -166,7 +166,8 @@ class PE:
         else:
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15])
         if self.opcode & 0xFF in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
-                                  0xf, 0x11]:  # lshl, lshr
+                                  0xf, 0x11,         # lshl, lshr
+                                  0x8]:              # sel
             V = 0
         if self.flag_sel == 0x0:
             return Z
