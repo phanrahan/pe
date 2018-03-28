@@ -94,14 +94,14 @@ def const(value):
 def mul0(flag_sel=0):
     def _mul(a, b, c, d):
         return a * b, 0
-    return PE(0xb, _mul)
+    return PE(0xb | flag_sel << 12, _mul)
 
 def mul1(flag_sel=0):
     def _mul(a, b, c, d):
         return (BitVector(a, 24) * BitVector(b, 24))[8:], 0
-    return PE(0xc, _mul)
+    return PE(0xc | flag_sel << 12, _mul)
 
 def mul2(flag_sel=0):
     def _mul(a, b, c, d):
         return (BitVector(a, 32) * BitVector(b, 32))[16:], 0
-    return PE(0xd, _mul)
+    return PE(0xd | flag_sel << 12, _mul)

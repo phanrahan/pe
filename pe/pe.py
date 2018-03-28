@@ -159,6 +159,10 @@ class PE:
             V = (ra[15] != rb[15]) and (ra[15] != (ra + ~rb + 1)[15])
         elif self.opcode & 0xFF == 0x3: # abs
             V = (~ra + 1)[15]
+        elif self.opcode & 0xFF in [0xb, 0xc]: # mul0, mul1
+            V = (ra * rb)[15] if (ra[15] == rb[15]) else (ra * rb)[15] == 0 and (ra != 0 or rb != 0)
+        elif self.opcode & 0xFF == 0xd:
+            V = 0
         else:
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15])
         if self.opcode & 0xFF in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
