@@ -62,7 +62,7 @@ class ALU:
         d = BitVector(op_d_p, num_bits=self.width, signed=self.signed)
         res = self.op(a, b, c, d)
         if self._carry:
-            res_p = BitVector(a.as_int() + b.as_int() >= (2 ** self.width), 1)
+            res_p = BitVector(a._value + b._value >= (2 ** self.width), 1)
             return res, res_p
         return res
 
