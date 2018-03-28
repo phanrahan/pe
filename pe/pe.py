@@ -106,7 +106,6 @@ class PE:
         self.cond()
         self.reg()
         self.place()
-        self.flag_sel = (opcode >> 12) & 0xF
         self._lut = None
 
     def __call__(self, data0=0, data1=0, c=0, bit0=0, bit1=0, bit2=0):
@@ -204,8 +203,19 @@ class PE:
 
     def alu(self, opcode, signed, _alu):
         self.opcode = config('0000000l0dsoooooo', o=opcode, s=signed)
-        self.signed = signed
+        self._signed = signed
         self._alu = ALU(_alu, opcode, DATAWIDTH, signed=signed)
+        return self
+
+    def signed(self, _signed=True):
+        self._signed = _signed
+        self._alu.signed = _signed
+        return self
+
+    def flag(self, flag_sel):
+        self.opcode &= ~(0xFF << 12)
+        self.opcode |= flag_sel << 12
+        self.flag_sel = flag_sel
         return self
 
     def add(self, _add=None):
@@ -221,7 +231,7 @@ class PE:
         self._cond = None
         if _cond:
             self.add(lambda a, b, c, d: a+b if _cond else None)
-            self._cond = COND(_cond, self.signed)
+            self._cond = COND(_cond, self._signed)
         return self
 
     def reg(self):

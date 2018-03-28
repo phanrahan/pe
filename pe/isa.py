@@ -11,97 +11,97 @@ __all__ += ['sel']
 __all__ += ['const']
 __all__ += ['mul0', 'mul1', 'mul2']
 
-def or_(flag_sel=0):
-    return PE( 0x12 | flag_sel << 12, lambda a, b, c, d: a | b).carry()
+def or_():
+    return PE( 0x12, lambda a, b, c, d: a | b).carry()
 
-def and_(flag_sel=0):
-    return PE( 0x13 | flag_sel << 12, lambda a, b, c, d: a & b ).carry()
+def and_():
+    return PE( 0x13 , lambda a, b, c, d: a & b ).carry()
 
-def xor(flag_sel=0):
-    return PE( 0x14 | flag_sel << 12, lambda a, b, c, d: a ^ b ).carry()
+def xor():
+    return PE( 0x14 , lambda a, b, c, d: a ^ b ).carry()
 
-def inv(flag_sel=0):
-    return PE( 0x15 | flag_sel << 12, lambda a, b, c, d: ~a )
+def inv():
+    return PE( 0x15 , lambda a, b, c, d: ~a )
 
-def neg(flag_sel=0):
-    return PE( 0x15 | flag_sel << 12, lambda a, b, c, d: ~a+b ).regb(CONST, 1)
+def neg():
+    return PE( 0x15 , lambda a, b, c, d: ~a+b ).regb(CONST, 1)
 
 
-def lshr(flag_sel=0):
+def lshr():
     # b[3:0]
-    return PE( 0xf | flag_sel << 12, lambda a, b, c, d: a >> b[:4] ).carry()
+    return PE( 0xf , lambda a, b, c, d: a >> b[:4] ).carry()
 
-def ashr(flag_sel=0):
+def ashr():
     # b[3:0]
-    return PE( 0x10 | flag_sel << 12, lambda a, b, c, d: a >> b, signed=1 )
+    return PE( 0x10 , lambda a, b, c, d: a >> b, signed=1 )
 
-def lshl(flag_sel=0):
+def lshl():
     # b[3:0]
-    return PE( 0x11 | flag_sel << 12, lambda a, b, c, d: a << b[:4] ).carry()
+    return PE( 0x11 , lambda a, b, c, d: a << b[:4] ).carry()
 
 
-def add(flag_sel=0):
+def add():
     # res_p = cout
     def _add(a, b, c, d):
         res_p = BitVector(a, a.num_bits + 1) + BitVector(b, b.num_bits + 1) + d >= 2 ** 16
         return a + b + d, res_p
-    return PE( 0x0 | flag_sel << 12, _add)
+    return PE( 0x0 , _add)
 
-def sub(flag_sel=0):
+def sub():
     def _sub(a, b, c, d):
         res_p = BitVector(a, a.num_bits + 1) + BitVector(~b, b.num_bits + 1) + 1 >= 2 ** 16
         return a - b, res_p
-    return PE( 0x1 | flag_sel << 12, _sub)
+    return PE( 0x1 , _sub)
 
 
-def eq(flag_sel):
+def eq():
     raise NotImplementedError("eq should use sub with Z flag")
     # res?
     # return PE( 0x6, lambda a, b, c, d: a+b ).cond( lambda ge, eq, le: eq )
 
-def ge(signed, flag_sel=0):
+def ge(signed):
     # res = a >= b ? a : b (comparison should be signed/unsigned)
     def _ge(a, b, c, d):
         res = a if a >= b else b
         res_p = a >= b
         return res, res_p
-    return PE( 0x4 | flag_sel << 12, _ge, signed=signed )
+    return PE( 0x4 )
 
 max = ge
 
-def le(signed, flag_sel=0):
+def le(signed):
     # res = a <= b ? a : b 
     def _le(a, b, c, d):
         res = a if a <= b else b
         res_p = a <= b
         return res, res_p
-    return PE( 0x5 | flag_sel << 12, _le, signed=signed )
+    return PE( 0x5 , _le, signed=signed )
 min = le
 
-def abs(flag_sel=0):
+def abs():
     # res = abs(a-b) + c
     def _abs(a, b, c, d):
         return a if a >= 0 else -a, a[15]
-    return PE( 0x3 | flag_sel << 12, _abs , signed=True).regb(CONST, 0)
+    return PE( 0x3 , _abs , signed=True).regb(CONST, 0)
 
 
-def sel(flag_sel=0):
-    return PE( 0x8 | flag_sel << 12, lambda a, b, c, d: a if d else b ).carry()
+def sel():
+    return PE( 0x8 , lambda a, b, c, d: a if d else b ).carry()
 
 def const(value):
-    return PE( 0x0 | flag_sel << 12, lambda a, b, c, d: a ).rega( CONST, value )
+    return PE( 0x0 , lambda a, b, c, d: a ).rega( CONST, value )
 
-def mul0(flag_sel=0):
+def mul0():
     def _mul(a, b, c, d):
-        return a * b, 0
-    return PE(0xb | flag_sel << 12, _mul)
+        return (a * b)[:16], 0
+    return PE(0xb , _mul)
 
-def mul1(flag_sel=0):
+def mul1():
     def _mul(a, b, c, d):
-        return (BitVector(a, 24) * BitVector(b, 24))[8:], 0
-    return PE(0xc | flag_sel << 12, _mul)
+        return (a * b)[8:24], 0
+    return PE(0xc , _mul)
 
-def mul2(flag_sel=0):
+def mul2():
     def _mul(a, b, c, d):
-        return (BitVector(a, 32) * BitVector(b, 32))[16:], 0
-    return PE(0xd | flag_sel << 12, _mul)
+        return (a * b)[16:32], 0
+    return PE(0xd , _mul)
