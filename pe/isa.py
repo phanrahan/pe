@@ -82,7 +82,7 @@ def abs():
     # res = abs(a-b) + c
     def _abs(a, b, c, d):
         return a if a >= 0 else -a, a[15]
-    return PE( 0x3 , _abs , signed=True).regb(CONST, 0)
+    return PE( 0x3 , _abs , signed=True)
 
 
 def sel():
