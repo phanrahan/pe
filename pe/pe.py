@@ -108,6 +108,10 @@ class PE:
         self.place()
         self._lut = None
         self.flag_sel = 0x0
+        self.irq_en_0 = False
+        self.irq_en_1 = False
+        self._debug_trig = 0x0
+        self._debug_trig_p = 0x0
 
     def __call__(self, data0=0, data1=0, c=0, bit0=0, bit1=0, bit2=0):
 
@@ -140,7 +144,29 @@ class PE:
         # if self._cond:
         #     res_p = self._cond(ra, rb, res)
 
+        # Set internal flags to determine whether debug trigger should be raised
+        # for both the result and the predicate.
+        self.raise_debug_trig = res != self._debug_trig
+        self.raise_debug_trig_p = res_p != self._debug_trig_p
+
         return res.as_int(), res_p.as_int()
+
+    def get_irq_trigger(self):
+        return (self.irq_en_0 and self.raise_debug_trig_p) \
+            or (self.irq_en_1 and self.raise_debug_trig)
+
+    def irq_en(self, en_0=True, en_1=True):
+        self.irq_en_0 = en_0
+        self.irq_en_1 = en_1
+        return self
+
+    def debug_trig(self, value):
+        self._debug_trig = value
+        return self
+
+    def debug_trig_p(self, value):
+        self._debug_trig_p = value
+        return self
 
     def get_flag(self, ra, rb, rc, rd, alu_res, alu_res_p, lut_out):
         Z = alu_res == 0
