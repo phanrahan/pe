@@ -39,7 +39,10 @@ class Register:
 
         retvalue = value
         if self.mode == DELAY:
+            retvalue = self.value
             self.value = value
+        elif self.mode == VALID:
+            raise NotImplementedError("Need clock enable logic")
         elif self.mode == CONST:
             retvalue = self.value
         return retvalue
@@ -120,6 +123,7 @@ class PE:
 
         res = ZERO
         res_p = BITZERO
+        alu_res_p = BITZERO
 
         if self._add:
             add = self._add(ra, rb, rc, rd)
