@@ -28,24 +28,31 @@ class Register:
         self.mode = mode
         self.value = BitVector(init, num_bits=width)
         self.width = width
+        self.last_clk = 0  # TODO: clk initialized to 0, should it be?
 
     @property
     def const(self):
         return self.mode == CONST
 
-    def __call__(self, value):
+    def __call__(self, value, clk, clk_en):
         if not isinstance(value, BitVector):
             value = BitVector(value, self.width)
 
-        retvalue = value
-        if self.mode == DELAY:
+        if self.mode in [DELAY, VALID]:
             retvalue = self.value
-            self.value = value
-        elif self.mode == VALID:
-            raise NotImplementedError("Need clock enable logic")
+            # TODO: Assumes posedge
+            if not self.last_clk and clk:
+                if self.mode == DELAY or clk_en:
+                    self.value = value
+                    retvalue = value
+            self.last_clk = clk
+            return retvalue
         elif self.mode == CONST:
-            retvalue = self.value
-        return retvalue
+            return self.value
+        elif self.mode == BYPASS:
+            return value
+        else:
+            raise NotImplementedError()
 
 
 class ALU:
@@ -116,14 +123,14 @@ class PE:
         self._debug_trig = 0x0
         self._debug_trig_p = 0x0
 
-    def __call__(self, data0=0, data1=0, c=0, bit0=0, bit1=0, bit2=0):
+    def __call__(self, data0=0, data1=0, c=0, bit0=0, bit1=0, bit2=0, clk=0, clk_en=1):
 
-        ra = self.RegA(data0)
-        rb = self.RegB(data1)
-        rc = self.RegC(c)
-        rd = self.RegD(bit0)
-        re = self.RegE(bit1)
-        rf = self.RegF(bit2)
+        ra = self.RegA(data0, clk, clk_en)
+        rb = self.RegB(data1, clk, clk_en)
+        rc = self.RegC(c, clk, clk_en)
+        rd = self.RegD(bit0, clk, clk_en)
+        re = self.RegE(bit1, clk, clk_en)
+        rf = self.RegF(bit2, clk, clk_en)
 
         res = ZERO
         res_p = BITZERO
