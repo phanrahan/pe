@@ -181,29 +181,29 @@ class PE:
 
     def get_flag(self, ra, rb, rc, rd, alu_res, alu_res_p, lut_out):
         Z = alu_res == 0
-        if self.opcode & 0xFF == 0x0: # add
+        if self._opcode == 0x0: # add
             C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17) + BitVector(rd, num_bits=7))[16]
-        elif self.opcode & 0xFF == 0x1: # sub
+        elif self._opcode == 0x1: # sub
             C = (BitVector(ra, num_bits=17) + BitVector(~rb, num_bits=17) + 1)[16]
-        elif self.opcode & 0xFF == 0x3: # abs
+        elif self._opcode == 0x3: # abs
             C = (BitVector(~ra, num_bits=17) + 1)[16]
         else:
             C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17))[16]
         N = alu_res[15]
-        if self.opcode & 0xFF == 0x0: # add
+        if self._opcode == 0x0: # add
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb + rd)[15])
-        elif self.opcode & 0xFF == 0x1: # sub
+        elif self._opcode == 0x1: # sub
             V = (ra[15] != rb[15]) and (ra[15] != (ra + ~rb + 1)[15])
-        elif self.opcode & 0xFF == 0x3: # abs
+        elif self._opcode == 0x3: # abs
             V = ra == 0x8000
             # V = alu_res[15]
-        elif self.opcode & 0xFF in [0xb, 0xc]: # mul0, mul1
+        elif self._opcode in [0xb, 0xc]: # mul0, mul1
             V = (ra * rb)[15] if (ra[15] == rb[15]) else (ra * rb)[15] == 0 and (ra != 0 or rb != 0)
-        elif self.opcode & 0xFF == 0xd:
+        elif self._opcode == 0xd:
             V = 0
         else:
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15])
-        if self.opcode & 0xFF in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
+        if self._opcode in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
                                   0xf, 0x11,         # lshl, lshr
                                   0x8]:              # sel
             V = 0
@@ -242,7 +242,7 @@ class PE:
         raise NotImplementedError(self.flag_sel)
 
     def alu(self, opcode, signed, _alu):
-        self._opcode = config('0000000l0dsoooooo', o=opcode, s=signed)
+        self._opcode = opcode
         self._signed = signed
         self._alu = ALU(_alu, opcode, DATAWIDTH, signed=signed)
         return self
@@ -250,13 +250,9 @@ class PE:
     def signed(self, _signed=True):
         self._signed = _signed
         self._alu.signed = _signed
-        self._opcode &= ~(1 << 6)
-        self._opcode |= (int(_signed) << 6)
         return self
 
     def flag(self, flag_sel):
-        self._opcode &= ~(0xF << 12)
-        self._opcode |= flag_sel << 12
         self.flag_sel = flag_sel
         return self
 
@@ -328,7 +324,8 @@ class PE:
 
     @property
     def opcode(self):
-        return self.regcode << 16 | self._opcode
+        irq_en = self.irq_en_0 | (self.irq_en_1 << 1)
+        return config('r' * 14 + 'ffffiia00soooooo', o=self._opcode, s=self._signed, a=0, i=irq_en, f=self.flag_sel, r=self.regcode)
 
 
     def lut(self, code=None):
