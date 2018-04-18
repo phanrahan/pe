@@ -4,7 +4,7 @@ class Field:
         self.width = 1
 
     def __call__(self, value):
-        mask = (1 << (self.width-1)) - 1
+        mask = (1 << (self.width)) - 1
         return (value & mask) << (self.start - self.width)
 
 def config(format, **args):
