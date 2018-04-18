@@ -2,13 +2,12 @@ from .config import config
 from .pe import PE, CONST
 from .bv import BitVector
 
-__all__  = ['or_', 'and_', 'xor', 'inv']
-__all__ += ['lshr', 'lshl', 'ashr']
+__all__  = ['or_', 'and_', 'xor']
+__all__ += ['lshr', 'lshl']
 __all__ += ['add', 'sub']
 __all__ += ['min', 'max', 'abs']
-__all__ += ['eq', 'ge', 'le']
+__all__ += ['ge', 'le']
 __all__ += ['sel']
-__all__ += ['const']
 __all__ += ['mul0', 'mul1', 'mul2']
 
 def or_():
@@ -20,8 +19,8 @@ def and_():
 def xor():
     return PE( 0x14 , lambda a, b, c, d: a ^ b ).carry()
 
-def inv():
-    return PE( 0x15 , lambda a, b, c, d: ~a )
+# def inv():
+#     return PE( 0x15 , lambda a, b, c, d: ~a )
 
 def neg():
     return PE( 0x15 , lambda a, b, c, d: ~a+b ).regb(CONST, 1)
@@ -31,9 +30,9 @@ def lshr():
     # b[3:0]
     return PE( 0xf , lambda a, b, c, d: a >> b[:4] ).carry()
 
-def ashr():
-    # b[3:0]
-    return PE( 0x10 , lambda a, b, c, d: a >> b, signed=1 )
+# def ashr():
+#     # b[3:0]
+#     return PE( 0x10 , lambda a, b, c, d: a >> b, signed=1 )
 
 def lshl():
     # b[3:0]
@@ -54,8 +53,8 @@ def sub():
     return PE( 0x1 , _sub)
 
 
-def eq():
-    raise NotImplementedError("eq should use sub with Z flag")
+# def eq():
+#     raise NotImplementedError("eq should use sub with Z flag")
     # res?
     # return PE( 0x6, lambda a, b, c, d: a+b ).cond( lambda ge, eq, le: eq )
 
@@ -78,18 +77,20 @@ def le(signed):
     return PE( 0x5 , _le, signed=signed )
 min = le
 
-def abs():
+def abs(signed=True):
     # res = abs(a-b) + c
     def _abs(a, b, c, d):
         return a if a >= 0 else -a, a[15]
-    return PE( 0x3 , _abs , signed=True)
+    # if not signed:
+    #     raise Exception("Abs undefined for unsigned mode ")
+    return PE( 0x3 , _abs , signed=signed)
 
 
 def sel():
     return PE( 0x8 , lambda a, b, c, d: a if d else b ).carry()
 
-def const(value):
-    return PE( 0x0 , lambda a, b, c, d: a ).rega( CONST, value )
+# def const(value):
+#     return PE( 0x0 , lambda a, b, c, d: a ).rega( CONST, value )
 
 def mul0():
     def _mul(a, b, c, d):
