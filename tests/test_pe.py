@@ -18,11 +18,11 @@ def test_xor():
     assert res==2
     assert res_p==0
 
-def test_inv():
-    a = pe.inv()
-    res, res_p, irq = a(1)
-    assert res==0xfffe
-    assert res_p==0
+# def test_inv():
+#     a = pe.inv()
+#     res, res_p, irq = a(1)
+#     assert res==0xfffe
+#     assert res_p==0
 
 def test_add():
     a = pe.add()
