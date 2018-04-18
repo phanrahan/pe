@@ -323,9 +323,10 @@ class PE:
         return self
 
     @property
-    def opcode(self):
+    def instruction(self):
         irq_en = self.irq_en_0 | (self.irq_en_1 << 1)
-        return config('r' * 14 + 'ffffiia00soooooo', o=self._opcode, s=self._signed, a=0, i=irq_en, f=self.flag_sel, r=self.regcode)
+        return config('r' * 14 + 'ffffiia00soooooo', 
+                      o=self._opcode, s=self._signed, a=0, i=irq_en, f=self.flag_sel, r=self.regcode)
 
 
     def lut(self, code=None):
