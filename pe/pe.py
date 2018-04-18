@@ -253,7 +253,7 @@ class PE:
         return self
 
     def flag(self, flag_sel):
-        self.opcode &= ~(0xFF << 12)
+        self.opcode &= ~(0xF << 12)
         self.opcode |= flag_sel << 12
         self.flag_sel = flag_sel
         return self
@@ -289,6 +289,8 @@ class PE:
         self.raconst = regvalue
         self.regcode &= ~(3 << 0)
         self.regcode |= config('aa', a=regmode)
+        self.opcode &= ~(0x3 << 16)
+        self.opcode |= regmode << 16
         return self
 
     def regb(self, regmode=BYPASS, regvalue=0):
@@ -296,6 +298,8 @@ class PE:
         self.rbconst = regvalue
         self.regcode &= ~(3 << 2)
         self.regcode |= config('aa', a=regmode) << 2
+        self.opcode &= ~(0x3 << 18)
+        self.opcode |= regmode << 18
         return self
 
     def regc(self, regmode=BYPASS, regvalue=0):
@@ -310,6 +314,8 @@ class PE:
         self.rdconst = regvalue
         self.regcode &= ~(3 << 8)
         self.regcode |= config('aa', a=regmode) << 8
+        self.opcode &= ~(0x3 << 24)
+        self.opcode |= regmode << 24
         return self
 
     def rege(self, regmode=BYPASS, regvalue=0):
@@ -317,6 +323,8 @@ class PE:
         self.reconst = regvalue
         self.regcode &= ~(3 << 10)
         self.regcode |= config('aa', a=regmode) << 10
+        self.opcode &= ~(0x3 << 26)
+        self.opcode |= regmode << 26
         return self
 
     def regf(self, regmode=BYPASS, regvalue=0):
@@ -324,6 +332,8 @@ class PE:
         self.rfconst = regvalue
         self.regcode &= ~(3 << 12)
         self.regcode |= config('aa', a=regmode) << 12
+        self.opcode &= ~(0x3 << 28)
+        self.opcode |= regmode << 28
         return self
 
     def lut(self, code=None):
