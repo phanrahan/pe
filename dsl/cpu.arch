@@ -1,0 +1,41 @@
+import math
+
+# Config state. This is included here for completeness but is not actually
+# used. Even in a CPU we may have some important configuration state.
+var quantitative config perf_counter(16);
+
+# The special variable "instruction" does not require a bit length argument, nor
+# does it accept the "quantitative" or "nominal" qualifier (since it is always
+# assumed to be nominal).
+var dynamic instruction;
+
+# We can metaprogram by using arbitrary python code.
+num_reg = 32
+reg_bits = math.ceil(math.log(num_reg, 2))
+
+# Here we declare all inputs used by all instructions. Note that not all
+# operations will use all of these. For example, binary arithmetic ops will use
+# src0, src1, and dst0, whereas memory references may use src0, imm, and dst. In
+# any case, we must specify all inputs upfront and we can use them in anyway we
+# want downstream.
+var quantitative dynamic src0(reg_bits);
+var quantitative dynamic src1(reg_bits);
+var quantitative dynamic dst(reg_bits);
+var quantitative dynamic imm(10);
+
+# We create intermediate values for the actual values coming from the reg files
+# (src0, src1, dst are just reg file indices). Note that the syntax for
+# registers has not been worked out - this is just a proxy.
+r_a = reg[src0]
+r_b = reg[src1]
+r_dst = reg[dst]
+
+op add : r_dst <= r_a + r_b
+op sub : r_dst <= r_a + ~r_b + 1
+op abs : r_dst <= (0 - r_a) if r_a[15] else r_a
+# TODO(raj): Add remaining ops.
+
+# NOTES:
+# -- Providing switch case-like primitive?
+# -- Quant/Nominal for 1-bit inputs? Special syntax for 1-bit inputs?
+# -- How to capture state?
