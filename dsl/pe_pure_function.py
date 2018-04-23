@@ -86,6 +86,11 @@ def pe(lut_code, data0_const, data1_const, bit0_const, bit1_const, bit2_const, d
     n = res[15]
     v_eff = v_signed if signed else v_unsigned
     flag = get_flag_sel(z, c, n, v_eff, res_p)
+    # We capture the irq logic explicitly since it is simple and not reused.
+    irq_trigger = \
+                  (irq_en[0] and (flag != debug_trig_p)) or \
+                  (irq_en[1] and (res != debug_trig))
     # The final output of this function is a tuple containing the actual ALU
-    # output as well as the 1 bit predicate, determined by the @flag_sel input.
-    return res, flag
+    # output, the 1 bit predicate (determined by the @flag_sel input), and the
+    # interrupt trigger debug signal
+    return res, flag, irq_trigger
