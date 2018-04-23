@@ -1,0 +1,56 @@
+# Config state.
+var quantitative config lut_code(3);
+var quantitative config data0_const(16);
+var quantitative config data1_const(16);
+var quantitative config bit0_const(1);
+var quantitative config bit1_const(1);
+var quantitative config bit2_const(1);
+var quantitative config debug_trig(16);
+var quantitative config debug_trig_p(1);
+var nominal      config data0_mode(
+    ["CONST", "VALID", "BYPASS", "DELAY"]);
+var nominal      config data1_mode(
+    ["CONST", "VALID", "BYPASS", "DELAY"]);
+var nominal      config bit0_mode(
+    ["CONST", "VALID", "BYPASS", "DELAY"]);
+var nominal      config bit1_mode(
+    ["CONST", "VALID", "BYPASS", "DELAY"]);
+var nominal      config bit2_mode(
+    ["CONST", "VALID", "BYPASS", "DELAY"]);
+var nominal      config flag_sel(
+    ["z", "not_z", "c", "not_c", "n", "not_n", "v", "not_v",
+     "c_and_not_z", "not_c_or_z", "n_equal_v", "n_not_equal_v",
+     "not_z_and_n_equal_v", "z_or_n_not_equal_v", "lut_code", "comp_res_p"]);
+var quantitative config irq_enable_0(1);
+var quantitative config irq_enable_1(1);
+var quantitative config acc_en(1);
+var quantitative config signed(1);
+# The special variable "instruction" does not require a bit length argument, nor
+# does it accept the "quantitative" or "nominal" qualifier (since it is always
+# assumed to be nominal).
+var config instruction;
+
+# Dynamic arguments.
+var quantitative dynamic data0(16);
+var quantitative dynamic data1(16);
+var quantitative dynamic bit0(1);
+var quantitative dynamic bit1(1);
+var quantitative dynamic bit2(1);
+
+def get_flag_sel(z, c, n, v):
+    if flag_sel == "z": return z
+    elif flag_sel == "not_z": return not z
+    elif flag_sel == "c": return c
+    elif flag_sel == "not_c": return not c
+    elif flag_sel == "n": return n
+    # TOOD(raj): Add remaining cases for flag_sel.
+
+instruction add : return data0 + data1 + bit1
+instruction sub : return data0 + ~data1 + 1
+instruction abs : return 0 - data0 if data0[15] else data0
+# TODO(raj): ADd remaining instructions.
+
+# NOTES:
+# -- Providing switch case-like primitive?
+# -- Quant/Nominal for 1-bit inputs? Special syntax for 1-bit inputs?
+# -- How to capture state?
