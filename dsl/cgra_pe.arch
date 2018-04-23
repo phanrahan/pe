@@ -47,7 +47,7 @@ def get_flag_sel(z, c, n, v):
 
 instruction add : return data0 + data1 + bit1
 instruction sub : return data0 + ~data1 + 1
-instruction abs : return 0 - data0 if data0[15] else data0
+instruction abs : return (0 - data0) if data0[15] else data0
 # TODO(raj): ADd remaining instructions.
 
 # NOTES:
