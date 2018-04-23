@@ -45,10 +45,10 @@ def get_flag_sel(z, c, n, v):
     elif flag_sel == "n": return n
     # TOOD(raj): Add remaining cases for flag_sel.
 
-instruction add : return data0 + data1 + bit1
-instruction sub : return data0 + ~data1 + 1
-instruction abs : return (0 - data0) if data0[15] else data0
-# TODO(raj): ADd remaining instructions.
+op add : return data0 + data1 + bit1
+op sub : return data0 + ~data1 + 1
+op abs : return (0 - data0) if data0[15] else data0
+# TODO(raj): Add remaining ops.
 
 # NOTES:
 # -- Providing switch case-like primitive?
