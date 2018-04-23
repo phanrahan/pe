@@ -1,3 +1,5 @@
+from bit_vector import BitVector
+
 # Here we model the pe as a pure (stateless) function. For this reason, we
 # ignore stateful components such as reigsters, memory, etc.
 
@@ -54,7 +56,7 @@ def pe(lut_code, data0_const, data1_const, bit0_const, bit1_const, bit2_const, d
     # get_flag_sel(). Here we declare their default values. The function
     # compute() should change the values of these internal flags based on the
     # operation.
-    c = data0 + data1 >= 2 ** 16
+    c = data0 + data1 >= BitVector(2 ** 16)
     v_signed = 0
     v_unsigned = 0
     # NOTE(raj): There are many more op's here that are similar in flavor to
@@ -63,22 +65,22 @@ def pe(lut_code, data0_const, data1_const, bit0_const, bit1_const, bit2_const, d
     def compute():
         if operation == 0:  # add
             res = data0 + data1 + bit1
-            c = out >= 2 ** 16
+            c = res >= BitVector(2 ** 16)
             v_signed = (data0[15] == data1[15]) and (data0[15] != (data0 + data1 + bit1)[15])
             v_unsigned = c
             return res, c
         elif operation == 1:  # sub
             res = data0 + ~data1 + 1
-            c = (data0 + ~data1 + 1) >= 2 ** 16
+            c = (data0 + ~data1 + 1) >= BitVector(2 ** 16)
             v_signed = (data0[15] != data1[15]) and (data0[15] != (data0 + ~data1 + 1)[15])
             v_unsigned = 0
             return res, c
         elif operation == 3:  # abs
             res = (0 - data0) if data0[15] else data0
-            c = (~data0 + 1) >= 2**16
+            c = (~data0 + 1) >= BitVector(2**16)
             v_signed = (~data0 + 1)[15]
             v_unsigned = v_signed
-            reutrn res, data0[15]
+            return res, data0[15]
     res, res_p = compute()
     z = (res == 0)
     n = res[15]
