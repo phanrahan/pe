@@ -56,3 +56,42 @@
   - In the case where the programmer (a) is writing a spec to match a pre-existing implementation, (b) is writing a spec to be backwards compatible with a previous implentation, or (c) has optimized decode semantics, we must allow the programmer to specify these bit patterns.
   - However, it may be that the programmer only wants to write a high-level spec, and is not concerned with these bit patterns. In fact, it may be a service of our language to derive an optimized decoder. (It is unclear how feasible this is.)
   - (From Lenny) One possible view is that there is a continuum, spanning the programmer specifying the decode patterns in their entirety, to the programmer specifying **none** of the decode patterns. It may be possible to allow the progammer to sit anywhere in that range: whatever the programmer wants control over and wants to specify, they can. Whatever is not important to them, they can leave to the system. Actually implementing such a flexible methodology may be difficult.
+
+# More notes (4/25)
+## Thoughts about state
+* Could we allow some inter-mix of verilog/RTL, python, and custom syntax? Is this useful or overkill? Is it possible to design such a language? Would it devlove into people just using RTL? If we do this, then people could specify RTL for stateful components like registers
+* One thought is that combinational-/sequential-ness of code is inferred. Specifically, sequential logic is quarantined to reads and writes from stateful components which are explicitly declared as being stateful (e.g. as regfiles or memory components). We can have one architectural memory primitive which is a timing-less "word"-addressable memory block (where "word can be customized for each such component, e.g. we can have a 32-bit regfile and a 128-bit wide memory).
+  - If we follow this, then we can the specification is bound to being at the architectural level and **not** at the implementation/RTL level. For example, all statements involving such components would look like:
+
+    ```
+    regfile[a] <- regfile[b] + addr[c]  # generic add
+    M[addr] <- regfile[a]  # store
+    ```
+
+    This is **very** close to ISA specification-like semantics and would allow quick specification, without worrying about timing, memory controllers, etc.
+  - Often such stateful componetns are nested, e.g. address calculation:
+
+    ```
+    M[regfile[a] + imm] <- regfile[b]  # store effective addr
+    ```
+
+    Such nesting should be straight-forward to specify and have very **well defined and clear semantics**. Furthermore, it should be supported by downstream components (compilers, etc.). There may need to be certain types of restrictions, for example nested memory references are not common in ISA's:
+
+    ```
+    M[M[regfile[a]] <- regfile[b]
+    ```
+
+    Such operations would normally happen as a sequence of multiple ISA instructions (load, store effective addr). An important question is whether to allow the designer to specify these constraints somehow, or have the system impose these constraints (unclear how to do the latter in a principled fashion).
+  - It seems valuable to distinguish between off-PE vs on-PE stateful components. One possible design is to require programmers to specify whether stateful components are `external` or `internal`. For example we may want to specify a large off-chip memory that's independent from an on-chip regfile. One possible design is to have two fundamentally types of stateful components: `memory` and `regfile`. Both are instanced similarly (both require word-size, address space) and have similar interfaces/usage in downstream code (see later for the differences); however, `memory` is assumed to be outside of the PE, where as `regfile` is assumed to be inside. This distinction has the following implications:
+    + The generated RTL would be very different. All read and write logic to `regfile` components would be contained inside the RTL. However, `memory` components would not generate any explicit RTL. Instead the memory would be assumed to be an external module, and the PE would expose a set of input and output wires (e.g. addr, data_in, data_out). Specifying or generating/inferring this interface maybe hard and in fact maybe the main point where these abstractions break down.
+    + Generally, both `regfile` and `memory` components could be used similarly (indexed using an appropriately sized wire, and can be read and written to). However, we would likely impose different restrictions for each. For example, in a single "combninational" path, you can only read or write from memory once, therefore, nested memory references should not be allowed. Similarly, regfiles can only be addressed by combinational values (i.e. `regfile[regfile[a]]` should be disallowed).
+    + We may want memory to be a singleton, where as generally it makes sense to have several regfiles (e.g. one for scalars and one for vectors). 
+  - This abstraction allows us to maintain concepts like virtual memory.
+-
+## What is the interface of a PE
+* In general what are the inputs and outputs for a PE? Can they be inferred from other parts of the spec? Or should they be explicitly declared? Requiring programmers to declare them explicitly seems very RTL-like.
+* One thought is that anything that would tradititionally be output of fetch (instruction), output to memory (addr, data_in), input from memory (data_out), or output to fetch (branch condition) should be automatically added to the interface. Anything else needs to be explicitly declared. This makes sense for processors, but the CGRA PE lacks many of these. In fact, the only inputs and outputs are data wires plus an output irq signal.
+## Branch control
+## Extracting semantic information from RTL-like code (or generic code)
+## Interrupts
+## Error messages
