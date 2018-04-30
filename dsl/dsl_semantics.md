@@ -27,7 +27,7 @@ Intermediate variables are atoms built by composing other variables using the op
   - Recursive assignments are not allowed. In short, an intermediate variable can not appear both on the left side **and** right side of an assignment. For example, if `x` and `y` are intermediate variables, then `Assign(x, BinaryOp(x, y, ...))` would not be allowed, for example. See [Combinational Loops](#combinational-loops) for more details.
   - The value produced by an intermediate variable is defined by the most recently executed assignment above it. Therefore, over the course of a [virtual cycle](#virtual-cycle), an intermediate variable can produce multiple variables.
 
-  ** TODO(raj): Is this the right semantics to have here?? Would it just be easier to say that even intermediate variables are immutable and add this^ as an optimization later if it makes sense??**
+  ** TODO(raj): Is this the right semantics to have here?? Would it just be easier to say that even intermediate variables are immutable and add this^ as an optimization later if it makes sense?? **
   - The nominal/quantitative qualifier is inferred upon declaration and **can not** be modified downstream. Therefore, all assignments of an intermediate variable must match the nominal/quantitative-ness of the initial declaration. **This implies that intermediate variables must be assigned at declaration time.** In particular, there is no notion of default values for intermediate variables.
 
 As an aside, we claim that intermediate variables are not fundamental to the language, but rather a feature to enable programmer productivity. Specifically, we claim that for any program containing intermediate variables, there is a functionally equivalent program **without** any intermediate variables. We design the language such that this is the case.
@@ -76,7 +76,7 @@ Assignment can be used to set the value of variables. All assignments are of the
   - If the same nominal register/quantitative register (register, not register file) appears on the left side of multiple assignments, then only the last executed one will take effect.
 
 ### Expressions
-We derive most of the expression semantics from python expression semantics, as well as the semantics of the `BitVector` class. Most importantly we inherit operator precedence and evaluation order from python. See [Type System](#type-system) for type-based restrictions on operations. Generally, the language is "strictly" typed. Arbitrarily nested expressions are allowed in the language. Beyond standard arithmetic, logic, and comparison operators, the language also includes explicit signed- and zero-extend operations, as well as bit-level splicing operations. (We refer to these operations as cast operations.) Expressions in our language are trees where non-leaf nodes are arithmetic/logic/comparison/cast operations, and variables and literals are leaf nodes.
+We derive most of the expression semantics from python expression semantics, as well as the semantics of the `BitVector` class. Most importantly we inherit operator precedence and evaluation order from python. See [Type System](#type-system) for type-based restrictions on operations. Generally, the language is "strictly" typed. Arbitrarily nested expressions are allowed in the language. Beyond standard arithmetic, logic, and comparison operators, the language also includes explicit signed- and zero-extend operations, as well as bit-level splicing operations. (We refer to these operations as cast operations.) Expressions in our language are trees where non-leaf nodes are arithmetic/logic/comparison/cast operations, and leaf nodes are variables and literals.
 
 ### Control Flow
 The language supports two kinds of control flow constructs:
@@ -88,15 +88,29 @@ If statements in the language have standard `if-else` semantics from other langa
 Switch-Case statements in the language have standard `switch-case` semantics from other languages. In particular they are triples of the form `(SwitchExpr, CaseMap)` where `SwitchExpr` is any valid exprssion in the language, and `CaseMap` is a map from values to case bodies.
 
 ## Type System
-There are 2 fundamental types in the language: enumerated types and bit-vectors. Enumerated types are parameterized by the set of possible values a variable of that type can assume (similar to `enum` types in C/C++). Bit-vectors are parameterized by a bit-width. The language is strictly typed in that type-checks are performed at compile time and implicit conversions are not allowed. The type-system implies the following specific rules (many of these have been mentioned above):
+There are 2 fundamental types in the language: enumerated types and bit-vectors. Enumerated types are parameterized by the set of possible values a variable of that type can assume (similar to `enum` types in C/C++). Bit-vectors are parameterized by a bit-width. Almost all variables are subtypes of these two high-level types - see [Quantitative Register Files and Memory Variables](#quantitative-register-files-and-memory-variables). The language is strictly typed in that type-checks are performed at compile time and implicit conversions are not allowed. The type-system implies the following specific rules (many of these have been mentioned above):
   - Enumerated types only support the `Equals` and `NotEquals` operations. Also, they can only be assigned values from the relevant set of possible values.
   - Bit-vectors support all operations.
   - Unless otherwise noted, all operations which take in multiple bit-vectors require that all bit-vector arguments have the same bit-width. For example, a 4-bit bit-vector can not be added to a 2-bit bit-vector. The cast operations exist to support such use cases.
 
-Note that there is no boolean type. Any operation which would normally require a boolean value will instead require a 1-bit bit-vector. `If` statements are the prevelant example of this.
+Note that there is no boolean type. Any operation which would normally require a boolean value will instead require a 1-bit bit-vector. `If` statements are the prevelant example of this. All comparison operations return 1-bit bit vectors.
+
+### Quantitative Register Files and Memory Variables
+Quantitative Register Files and Memory Variables are actually their own types that are neither subtypes of enumerated types nor bit-vectors. Instead, they emulate a collection of bit-vectors. They **only** support the `[]` operation, which returns a quantitative variable type (i.e. a bit-vector subtype).
 
 ## Programming Model
+The programming model in this language most closely resembles an RTL langauge, but there are several important differences. The way that it is most like RTL, is in how variables are declared, used and assigned. The important distinctions arise in how we constrain the program.
+
 ### Virtual Cycle
-### Combinational and Sequential Logic
+The most important concept in the programming model is that of the **virtual cycle**. A virtual cycle is defined as a uniform time period in which all perscriped operations take place atomically. In this way, each program corresponds to a large FSM. The state is collectively described by all stateful variables. Dynamic input variables are FSM inputs, while configuration input variables are meta-parameters of the FSM (i.e. each set of configuration values correspond to a different FSM). Program outputs are FSM outputs. The program statements (after input/output/stateful variable declaration) describe the state transitions of the FSM. One virtual cycle corresponds to one "step" or state transition of the FSM (which incorporates a set of inputs).
+
+The most important aspect of a virtual cycle is that the same value is "read" from stateful components for the entirety of a virtual cycle, and a "write" to a stateful component does not take place until the end of the virtual cycle. So stateful components change exactly once at the end of each virtual cycle.
+
+### Analogy to RTL
+If we were to cast the programming model to an RTL description, it would look as follows: first we would declare all inputs, outputs, intermediate variables as wires (as well as include inputs and outputs in a sensitivity list). All stateful variables would be declared as registers (or collections of registers). Then *all logic* would fit in a big `always @(posedge clk)` block, with all register assignments being **non-blocking**. A cycle of this `clk` corresponds to a virtual cycle in our language. This description matches almost exactly to our programming model. The only difference is that in our language intermediate values can take on multiple values throughout a virtual cycle, where as in an RTL language, only the last of a series of continuous assignments of a wire takes effect.
+
+### Combinational vs Sequential Logic
+Our language does not explictly differentiate between sequential and combinational logic. Instead, the nature of the logic is inferred from the variables involved. In fact, the only "sequential" logic occurs when a stateful variable is on the left side of an assignment. For example, expressions/assignments involving only input/output/intermediate variables is purely sequential. The appearance of stateful variables on only the right side of an assignment is also considered combinational.
+
 ### Combinational Loops
-### Analogies to RTL
+** TODO: what to say here?? **
