@@ -86,9 +86,15 @@ class QuantitativeRegisterFileType(Type):
         super().__init__(_id)
         if not isinstance(is_memory, bool):
             raise ValueError("is_memory must be a bool")
-        self.is_memory = is_memory
         self.width = width
         self.height = height
+        self.is_memory = is_memory
+
+    def get_width(self):
+        return self.width
+
+    def get_height(self):
+        return self.height
 
     def get_is_memory(self):
         return self.is_memory
