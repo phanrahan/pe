@@ -7,6 +7,16 @@ class AstNode(Atom):
         super().__init__(_id)
 
 
+class Literal(Atom):
+    def __init__(self, _id, _type):
+        if not TypeUtils.is_base_type(_type):
+            raise ValueError("_type must be a base type")
+        self._type = _type
+
+    def get_type(self):
+        return self._type
+
+
 class Variable(Atom):
     def __init__(self, _id, _type):
         if not isinstance(_type, Type):
