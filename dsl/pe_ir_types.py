@@ -101,8 +101,8 @@ class QuantitativeRegisterFileType(Type):
 
 
 class MemoryType(QuantitativeRegisterFileType):
-    def __init__(self, _id):
-        super().__init__(_id, True)
+    def __init__(self, _id, width, height):
+        super().__init__(_id, width, height, True)
 
 
 class TypeUtils:
