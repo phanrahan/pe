@@ -35,7 +35,7 @@ var quantitative dynamic imm(10);
 # registers has not been worked out - this is just a proxy.
 r_a = R[src0]
 r_b = R[src1]
-reg_wb = None
+reg_wb = 0
 op add : reg_wb <= r_a + r_b
 op sub : reg_wb <= r_a + ~r_b + 1
 op abs : reg_wb <= (0 - r_a) if r_a[15] else r_a
