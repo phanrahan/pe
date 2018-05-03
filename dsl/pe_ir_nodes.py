@@ -10,8 +10,6 @@ class IrNode(Atom):
 
 class Literal(IrNode):
     def __init__(self, _type, value):
-        if not TypeUtils.is_base_type(_type):
-            raise ValueError("_type must be a base type")
         super().__init__()
         self._type = _type
         self.value = value
@@ -75,6 +73,43 @@ class Assignment(IrNode):
 
     def get_rhs(self):
         return self.rhs
+
+
+class SwitchCase(IrNode):
+    def __init__(self, subject, case_map):
+        if not isinstance(subject, Name):
+            raise ValueError("subject must be a Name")
+        if not isinstance(case_map, dict):
+            raise ValueError("case_map must be a dict")
+        for key, value in case_map.items():
+            if not isinstance(key, Literal):
+                raise ValueError("case_map keys must be Literal")
+        super().__init__()
+        self.subject = subject
+        self.case_map = case_map
+
+    def get_subject(self):
+        return self.subject
+
+    def get_case_map(self):
+        return self.case_map
+
+
+class Ternary(IrNode):
+    def __init__(self, condition, true_case, false_case):
+        super().__init__()
+        self.condition = condition
+        self.true_case = true_case
+        self.false_case = false_case
+
+    def get_condition(self):
+        return self.condition
+
+    def get_true_case(self):
+        return self.true_case
+
+    def get_false_case(self):
+        return self.false_case
 
 
 class IrContext:

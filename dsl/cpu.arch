@@ -35,12 +35,13 @@ var quantitative dynamic imm(10);
 # registers has not been worked out - this is just a proxy.
 r_a = R[src0]
 r_b = R[src1]
-r_dst = R[dst]
+reg_wb = None
+op add : reg_wb <= r_a + r_b
+op sub : reg_wb <= r_a + ~r_b + 1
+op abs : reg_wb <= (0 - r_a) if r_a[15] else r_a
+op ld  : reg_wb <= M[r_a]  # simple load instruction
 
-op add : r_dst <= r_a + r_b
-op sub : r_dst <= r_a + ~r_b + 1
-op abs : r_dst <= (0 - r_a) if r_a[15] else r_a
-op ld  : r_dst <= M[r_a]  # simple load instruction
+R[dst] <= reg_wb
 # Note: This is an example of an invalid instruction due to restrictions on how
 # memory can be read and written. Nested memory references should not be
 # allowed, because memory can be read from once per instruction.

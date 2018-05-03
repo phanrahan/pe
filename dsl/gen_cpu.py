@@ -5,6 +5,9 @@ import math
 
 ctx = IrContext()
 
+instruction_choices = set(['add', 'sub', 'abs', 'ld'])
+instruction_type = NominalType(instruction_choices)
+
 ctx.add_node(
     VariableDeclaration(
         'perf_counter',
@@ -16,7 +19,7 @@ ctx.add_node(
     VariableDeclaration(
         'instruction',
         InputType(
-            NominalType(set()),
+            NominalType(instruction_choices),
             InputType.DynamicQualifier.DYNAMIC)))
 
 NUM_REGISTERS = 32
@@ -49,8 +52,7 @@ for name, width in instr_fields:
 
 intermediates = [
     ('r_a', 'src0'),
-    ('r_b', 'src1'),
-    ('r_dst', 'dst')]
+    ('r_b', 'src1')]
 
 for name, index in intermediates:
     ctx.add_node(
@@ -62,5 +64,58 @@ for name, index in intermediates:
             Operation(
                 Slice(),
                 [Name('R'), Name(index)])))
+ctx.add_node(
+    VariableDeclaration(
+        'reg_wb',
+        IntermediateType(
+            QuantitativeType(REG_WIDTH),
+            False),
+        Literal(QuantitativeType(REG_WIDTH), 0)))
+
+add_body = [
+    Assignment(
+        Name('reg_wb'),
+        Operation(
+            Add(),
+            [Name('r_a'), Name('r_a')]))
+]
+sub_body = [
+    Assignment(
+        Name('reg_wb'),
+        Operation(
+            Sub(),
+            [Name('r_a'), Name('r_a')]))
+]
+abs_body = [
+    Assignment(
+        Name('reg_wb'),
+        Ternary(
+            Operation(
+                Slice(),
+                [Name('r_a'), 15]),
+            Operation(
+                Sub(),
+                [Literal(QuantitativeType(REG_WIDTH), 0), Name('r_a')]),
+            Name('r_a')))
+]
+ld_body = [
+    Assignment(
+        Name('reg_wb'),
+        Operation(
+            Slice(),
+            [Name('M'), Name('r_a')]))
+]
+
+instruction_case_map = {
+    Literal(instruction_type, 'add'): add_body,
+    Literal(instruction_type, 'sub'): sub_body,
+    Literal(instruction_type, 'abs'): abs_body,
+    Literal(instruction_type, 'ld'): ld_body,
+}
+
+ctx.add_node(
+    SwitchCase(
+        Name('instruction'),
+        instruction_case_map))
 
 print (ctx.nodes)

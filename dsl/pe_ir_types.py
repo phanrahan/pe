@@ -103,11 +103,3 @@ class QuantitativeRegisterFileType(Type):
 class MemoryType(QuantitativeRegisterFileType):
     def __init__(self, width, height):
         super().__init__(width, height, True)
-
-
-class TypeUtils:
-    def __init__(self):
-        pass
-
-    def is_base_type(_type):
-        return type(_type) in [BitVectorType, EnumType]
