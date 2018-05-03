@@ -2,7 +2,7 @@ from pe_ir_atom import Atom
 from pe_ir_types import *
 
 
-class AstNode(Atom):
+class IrNode(Atom):
     def __init__(self, _id):
         super().__init__(_id)
 
@@ -25,7 +25,7 @@ class Variable(Atom):
         self._type = _type
 
 
-class VariableDeclaration(AstNode):
+class VariableDeclaration(IrNode):
     def __init__(self, variable):
         decl_id = variable.get_id() + "_decl"
         super().__init__(decl_id)
@@ -45,17 +45,17 @@ class Expression(Atom):
         self.operation = operation
 
 
-class Assignment(AstNode):
+class Assignment(IrNode):
     def __init__(self, _id, lhs, rhs):
         super().__init__(_id)
         self.lhs = lhs
         self.rhs = rhs
 
 
-class AstContext:
+class IrContext:
     def __init__(self):
         self.nodes = []
     def add_node(self, node):
-        if not isinstance(node, AstNode):
-            raise ValueError("node must be a proper AstNode")
+        if not isinstance(node, IrNode):
+            raise ValueError("node must be a proper IrNode")
         self.nodes.append(node)
