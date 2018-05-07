@@ -25,6 +25,8 @@ class MyChecker(TypeChecker):
 
     def is_input(self, type_decl):
         return isinstance(type_decl, ast.Call) and \
+                isinstance(type_decl.func, ast.Name) and \
+                type_decl.func.id == "Input"
 
 def type_check(tree):
     """
@@ -49,8 +51,6 @@ def good_test_func():
 
 def test_bad_func():
     bad_test_func_ast = get_ast(bad_test_func)
-                    isinstance(type_decl.func, ast.Name) and \
-                    type_decl.func.id == "Input"
 
     try:
         type_check(bad_test_func_ast)
