@@ -19,9 +19,21 @@ class Input(Bits):
 class Output(Bits):
     pass
 
+class MyCollector(TypeCollector):
+    def visit_Assign(self, node : ast.Assign):
+        if len(node.targets) > 1:
+            raise NotImplementedError("Assigning to multiple values (e.g. a, b, ... = 0, 1, ...) not supported")
+        target = node.targets[0]
+        value = node.value
+        if isinstance(target, ast.Name) and \
+           isinstance(value, ast.Call) and \
+           isinstance(value.func, ast.Name) and \
+           value.func.id in self.type_names:
+               self.type_table[target.id] = value
+
 def test_inputs():
 
-    collector = TypeCollector([Input, Output])
+    collector = MyCollector([Input, Output])
 
     def test_func():
         a = Input(8)

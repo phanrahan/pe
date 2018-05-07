@@ -1,23 +1,6 @@
-from type_checker import Type, TypeCollector, TypeChecker
-
+from type_checker import Type, TypeChecker
 import ast
-import inspect
-import textwrap
-
-def get_ast(obj):
-    indented_program_txt = inspect.getsource(obj)
-    program_txt = textwrap.dedent(indented_program_txt)
-    return ast.parse(program_txt)
-
-class Bits(Type):
-    def __init__(self, width):
-        self.width = width
-
-class Input(Bits):
-    pass
-
-class Output(Bits):
-    pass
+from .test_collector import get_ast, Bits, Input, Output, MyCollector
 
 def test_inputs():
 
@@ -51,7 +34,7 @@ def test_inputs():
                     type_decl.func.id == "Input"
 
     def type_check(tree):
-        collector = TypeCollector([Input, Output])
+        collector = MyCollector([Input, Output])
         collector.visit(tree)
         checker = MyChecker(collector.type_table)
         checker.visit(tree)
