@@ -9,16 +9,17 @@ def get_ast(obj):
     program_txt = textwrap.dedent(indented_program_txt)
     return ast.parse(program_txt)
 
+class Bits(Type):
+    def __init__(self, width):
+        self.width = width
+
+class Input(Bits):
+    pass
+
+class Output(Bits):
+    pass
+
 def test_inputs():
-    class Bits(Type):
-        def __init__(self, width):
-            self.width = width
-
-    class Input(Bits):
-        pass
-
-    class Output(Bits):
-        pass
 
     collector = TypeCollector([Input, Output])
 
@@ -29,9 +30,7 @@ def test_inputs():
     test_func_ast = get_ast(test_func)
     collector.visit(test_func_ast)
     print(collector.type_table)
-    assert {ast.dump(key): ast.dump(value) for key, value in collector.type_table.items()} == {
-        "Name(id='a', ctx=Store())": "Call(func=Name(id='Input', ctx=Load()), args=[Num(n=8)], keywords=[])",
-        "Name(id='b', ctx=Store())": "Call(func=Name(id='Output', ctx=Load()), args=[Num(n=8)], keywords=[])"
+    assert {key: ast.dump(value) for key, value in collector.type_table.items()} == {
+        "a": "Call(func=Name(id='Input', ctx=Load()), args=[Num(n=8)], keywords=[])",
+        "b": "Call(func=Name(id='Output', ctx=Load()), args=[Num(n=8)], keywords=[])"
     }
-
-

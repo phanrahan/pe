@@ -5,7 +5,10 @@ class Type:
     pass
 
 
-class TypeCollector(ast.NodeVisitor):
+class TypeVisitor(ast.NodeVisitor):
+    pass
+
+class TypeCollector(TypeVisitor):
     def __init__(self, types : list):
         self.type_names = {type_.__name__ for type_ in types}
         self.type_table = {}
@@ -19,4 +22,9 @@ class TypeCollector(ast.NodeVisitor):
            isinstance(value, ast.Call) and \
            isinstance(value.func, ast.Name) and \
            value.func.id in self.type_names:
-               self.type_table[target] = value
+               self.type_table[target.id] = value
+
+class TypeChecker(ast.NodeVisitor):
+    def __init__(self, type_table):
+        self.type_table = type_table
+        self.type_names = [value.func.id for value in self.type_table.values()]
