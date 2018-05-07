@@ -31,7 +31,7 @@ class MyCollector(TypeCollector):
            value.func.id in self.type_names:
                self.type_table[target.id] = value
 
-def test_inputs():
+def test_simple():
 
     collector = MyCollector([Input, Output])
 
