@@ -98,7 +98,7 @@ abs_body = [
                 [Literal(QuantitativeType(REG_WIDTH), 0), Name('r_a')]),
             Name('r_a')))
 ]
-ld_body = [
+mov_body = [
     Assignment(
         Name('reg_wb'),
         Operation(
@@ -110,12 +110,10 @@ instruction_case_map = {
     Literal(instruction_type, 'add'): add_body,
     Literal(instruction_type, 'sub'): sub_body,
     Literal(instruction_type, 'abs'): abs_body,
-    Literal(instruction_type, 'ld'): ld_body,
+    Literal(instruction_type, 'mov'): mov_body,
 }
 
 ctx.add_node(
     SwitchCase(
         Name('instruction'),
         instruction_case_map))
-
-print (ctx.nodes)
