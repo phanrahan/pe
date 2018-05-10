@@ -5,6 +5,7 @@ import pe_ir_ops as ops
 import pe_ir_types as types
 import status
 
+
 class TypeCheckStatus(status.Status):
     pass
 
@@ -42,12 +43,69 @@ class NameAlreadyDeclared(TypeCheckError):
         return ("Name %s already declared." % self.var_id)
 
 
-class GenericTcError(TypeCheckError):
-    def __init__(self, obj):
-        self.obj = obj
+class GenericAssignmentError(TypeCheckError):
+    def __init__(self, ltype=None, rtype=None):
+        self.ltype = ltype
+        self.rtype = rtype
 
     def __str__(self):
-        return str(self.obj)
+        ltype_name = type(self.ltype).__name__
+        rtype_name = type(self.rtype).__name__
+        return ("Can not assign type %s to type %s." % (ltype_name, rtype_name))
+
+
+class AssignmentLTypeError(GenericAssignmentError):
+    def __str__(self):
+        return ("Can not assign to type %s." % self.ltype.__name__)
+
+
+class AssignmentValueSetError(GenericAssignmentError):
+    def __str__(self):
+        vs0 = self.ltype.get_value_set()
+        vs1 = self.rtype.get_value_set()
+        return ("Can not assign types with value sets %s and %s." %
+                (str(vs0), str(vs1)))
+
+
+class AssignmentWidthError(GenericAssignmentError):
+    def __str__(self):
+        w0 = self.ltype.get_width()
+        w1 = self.rtype.get_width()
+        return ("Can not assign types with widths %s and %s." %
+                (w0, w1))
+
+
+class GenericLiteralError(TypeCheckError):
+    def __init__(self, _type, value):
+        self._type = _type
+        self.value = value
+
+    def __str__(self):
+        return ("Literal value %s is not compatible with type %s" %
+                (str(value), type(_type).__name__))
+
+
+class ArgumentMismatchError(TypeCheckError):
+    def __init__(self, expected, got):
+        self.expected = expected
+        self.got = got
+
+    def __str__(self):
+        return "Expected %d arguments; got %d" % (expected, got)
+
+
+def GenericBinaryOpError(TypeCheckError):
+    def __init__(self, op, arg0, arg1):
+        self.op = op
+        self.arg0 = arg0
+        self.arg1 = arg1
+
+    def __str__(self):
+        op_name = type(op).__name__
+        arg0_type = type(arg0).__name__
+        arg1_type = type(arg1).__name__
+        return ("Can not apply op %s to types %s and %s" %
+                (op_name, arg0_type, arg1_type))
 
 
 class ContextTypeChecker:
@@ -62,30 +120,30 @@ class ContextTypeChecker:
     @staticmethod
     def can_assign(ltype, rtype):
         if isinstance(ltype, types.InputType):
-            return GenericTcError('Can not assign to InputType')
+            return AssignmentLTypeError(ltype)
         if ltype.is_nominal() and rtype.is_nominal():
             if ltype.get_value_set() == rtype.get_value_set():
                 return TypeCheckSuccess()
-            return GenericTcError('Value set mismatch in nominal type assignment')
+            return AssignmentValueSetError(ltype, rtype)
         if ltype.is_quantitative() and rtype.is_quantitative():
             if ltype.get_width() == rtype.get_width():
                 return TypeCheckSuccess()
-            return GenericTcError('Width mismatch in quantitative type assignment')
-        return GenericTcError(('Assignment not supported for types', ltype, rtype))
+            return AssignmentWidthError(ltype, rtype)
+        return GenericAssignmentError(ltype, rtype)
 
     @staticmethod
     def literal_is_compatible(_type, value):
         if _type.is_quantitative():
             if not isinstance(value, BitVector):
-                return GenericTcError('Literal value for quantitative type must be BitVector')
+                return GenericLiteralError(_type, value)
             if _type.get_width() != len(value):
-                return GenericTcError('Width mistmatch for quantitative literal type')
+                return GenericLiteralError(_type, value)
             return TypeCheckSuccess()
         if _type.is_nominal():
             if value in _type.get_value_set():
                 return TypeCheckSuccess()
-            return GenericTcError('Value must be in value set for nominal type')
-        return GenericTcError(('Literal not allowed for type', _type, value))
+            return GenericLiteralError(_type, value)
+        return GenericLiteralError(_type, value)
 
     def type_check_literal(self, node):
         res = ContextTypeChecker.literal_is_compatible(
@@ -107,7 +165,7 @@ class ContextTypeChecker:
             return NameNotDeclared(node.get_id())
         return TypeCheckSuccess()
 
-    def type_check_assignment(self, node):        
+    def type_check_assignment(self, node):
         lhs_status = self.type_check_node(node.get_lhs())
         if not lhs_status.ok():
             return lhs_status
@@ -123,7 +181,7 @@ class ContextTypeChecker:
 
     def type_check_slice(self, op, args):
         if len(args) != 2:
-            return GenericTcError('Argument # mismatch')
+            return ArgumentMismatchError(2, len(args))
         arg0 = args[0]
         arg1 = args[1]
         arg0_res = self.type_check_node(arg0)
@@ -131,29 +189,29 @@ class ContextTypeChecker:
             return arg0_res
         arg0_type = self.get_type(arg0)
         if arg0_type.is_nominal():
-            return GenericTcError('Can not slice nominal variable')
+            return GenericBinaryOpError(op, arg0, arg1)
         if isinstance(arg0_type, types.QuantitativeRegisterFileType):
             if isinstance(arg1, int):
                 if arg1 in range(0, arg0_type.get_height()):
                     self.type_map[op] = arg0_type.generate_underlying_type()
                     return TypeCheckSuccess()
-                return GenericTcError('QRF index out of range')
+                return GenericBinaryOpError(op, arg0, arg1)
             arg1_res = self.type_check_node(arg1)
             if not arg1_res.ok():
                 return arg1_res
             arg1_type = self.get_type(arg1)
             if not arg1_type.is_quantitative():
-                return GenericTcError('Slice index must be quantitative')
+                return GenericBinaryOpError(op, arg0, arg1)
             if arg1_type.max_value() != arg0_type.get_height():
-                return GenericTcError('Slice index width must be log_2 of height')
+                return GenericBinaryOpError(op, arg0, arg1)
             self.type_map[op] = arg0_type.generate_underlying_type()
             return TypeCheckSuccess()
         # TODO(raj): Finish this (for quant type).
-        return GenericTcError('not impl')
+        return GenericBinaryOpError(op, arg0, arg1)
 
     def type_check_binary_arithmetic(self, op, args):
         if len(args) != 2:
-            return GenericTcError('Argument # mismatch')
+            return ArgumentMismatchError(2, len(args))
         for arg in args:
             res = self.type_check_node(arg)
             if not res.ok():
@@ -161,10 +219,10 @@ class ContextTypeChecker:
         types = [self.get_type(arg) for arg in args]
         info = [t.is_quantitative() for t in types]
         if not all(info):
-            return GenericTcError('Arguments to binary arithmetic must be quantitative')
+            return GenericBinaryOpError(op, args[0], args[1])
         info = [t.get_width() == types[0].get_width() for t in types]
         if not all(info):
-            return GenericTcError('Arguments to binary arithmetic must all have the same width')
+            return GenericBinaryOpError(op, args[1], args[1])
         self.type_map[op] = types[0]
         return TypeCheckSuccess()
 
