@@ -45,8 +45,6 @@ class Name(IrNode):
 
 class Operation(IrNode):
     def __init__(self, op, arguments):
-        if not isinstance(op, Op):
-            raise ValueError("op must be of type Op")
         super().__init__()
         self.op = op
         self.arguments = arguments
@@ -73,13 +71,6 @@ class Assignment(IrNode):
 
 class SwitchCase(IrNode):
     def __init__(self, subject, case_map):
-        if not isinstance(subject, Name):
-            raise ValueError("subject must be a Name")
-        if not isinstance(case_map, dict):
-            raise ValueError("case_map must be a dict")
-        for key, value in case_map.items():
-            if not isinstance(key, Literal):
-                raise ValueError("case_map keys must be Literal")
         super().__init__()
         self.subject = subject
         self.case_map = case_map
