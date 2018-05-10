@@ -1,15 +1,10 @@
 import pe_ir_nodes as nodes
 import pe_ir_ops as ops
 import pe_ir_types as types
+import status
 
-class ParseStatus:
-    def __str__(self):
-        raise NotImplementedError("Can not call __str__ on abstract "
-                                  "class ParseStatus")
-
-    def ok(self):
-        raise NotImplementedError("Can not call ok on abstract "
-                                  "class ParseStatus")
+class ParseStatus(status.Status):
+    pass
 
 
 class ParseSuccess(ParseStatus):
