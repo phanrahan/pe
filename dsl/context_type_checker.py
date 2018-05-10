@@ -94,18 +94,32 @@ class ArgumentMismatchError(TypeCheckError):
         return "Expected %d arguments; got %d" % (expected, got)
 
 
-def GenericBinaryOpError(TypeCheckError):
+class GenericBinaryOpError(TypeCheckError):
     def __init__(self, op, arg0, arg1):
         self.op = op
         self.arg0 = arg0
         self.arg1 = arg1
 
     def __str__(self):
-        op_name = type(op).__name__
-        arg0_type = type(arg0).__name__
-        arg1_type = type(arg1).__name__
+        op_name = type(self.op).__name__
+        arg0_type = type(self.arg0).__name__
+        arg1_type = type(self.arg1).__name__
         return ("Can not apply op %s to types %s and %s" %
                 (op_name, arg0_type, arg1_type))
+
+class GenericTernaryOpError(TypeCheckError):
+    def __init__(self, conditional, true_case, false_case):
+        self.conditional = conditional
+        self.true_case = true_case
+        self.false_case = false_case
+
+    def __str__(self):
+        tpl = ("Can not perform ternary with conditional type %s, true case "
+               "type %s, and false case type %s.")
+        fmt = (type(self.conditional).__name__,
+               type(self.true_case).__name__,
+               type(self.false_case).__name__)
+        return tpl % fmt
 
 
 class ContextTypeChecker:
@@ -190,6 +204,14 @@ class ContextTypeChecker:
         arg0_type = self.get_type(arg0)
         if arg0_type.is_nominal():
             return GenericBinaryOpError(op, arg0, arg1)
+        if arg0_type.is_quantitative():
+            if not isinstance(arg1, int):
+                return GenericBinaryOpError(op, arg0, arg1)
+            if arg1 not in range(0, arg0_type.get_width()):
+                return GenericBinaryOpError(op, arg0, arg1)
+            # Result of slice on a QuantitativeType is a single-bit bit-vector.
+            self.type_map[op] = types.QuantitativeType(1)
+            return TypeCheckSuccess()
         if isinstance(arg0_type, types.QuantitativeRegisterFileType):
             if isinstance(arg1, int):
                 if arg1 in range(0, arg0_type.get_height()):
@@ -206,7 +228,6 @@ class ContextTypeChecker:
                 return GenericBinaryOpError(op, arg0, arg1)
             self.type_map[op] = arg0_type.generate_underlying_type()
             return TypeCheckSuccess()
-        # TODO(raj): Finish this (for quant type).
         return GenericBinaryOpError(op, arg0, arg1)
 
     def type_check_binary_arithmetic(self, op, args):
@@ -231,6 +252,27 @@ class ContextTypeChecker:
 
     def type_check_sub(self, op, args):
         return self.type_check_binary_arithmetic(op, args)
+
+    def type_check_ternary(self, op, args):
+        if len(args) != 3:
+            return ArgumentMismatchError(3, len(args))
+        for arg in args:
+            res = self.type_check_node(arg)
+            if not res.ok():
+                return res
+        types = [self.get_type(arg) for arg in args]
+        if not types[0].is_quantitative():
+            return GenericTernaryOpError(args[0], args[1], args[2])
+        if types[0].get_width() != 1:
+            return GenericTernaryOpError(args[0], args[1], args[2])
+        # Check that types of true and false case of ternary "match".
+        # NOTE(raj): We are using can_assign() as a proxy for this check.
+        # Somewhat hacky.
+        can_assign_res = ContextTypeChecker.can_assign(types[1], types[2])
+        if not can_assign_res.ok():
+            return can_assign_res
+        self.type_map[op] = types[1]
+        return TypeCheckSuccess()
 
     def type_check_expression(self, node):
         status = self.type_check_op(node.get_op(), node.get_arguments())
