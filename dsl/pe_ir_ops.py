@@ -23,3 +23,8 @@ class Sub(Op):
 class Not(Op):
     def __init__(self):
         super().__init__()
+
+
+class Ternary(Op):
+    def __init__(self):
+        super().__init__()

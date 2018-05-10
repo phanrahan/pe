@@ -43,7 +43,7 @@ class Name(IrNode):
         return self._id
 
 
-class Operation(IrNode):
+class Expression(IrNode):
     def __init__(self, op, arguments):
         super().__init__()
         self.op = op
@@ -80,23 +80,6 @@ class SwitchCase(IrNode):
 
     def get_case_map(self):
         return self.case_map
-
-
-class Ternary(IrNode):
-    def __init__(self, condition, true_case, false_case):
-        super().__init__()
-        self.condition = condition
-        self.true_case = true_case
-        self.false_case = false_case
-
-    def get_condition(self):
-        return self.condition
-
-    def get_true_case(self):
-        return self.true_case
-
-    def get_false_case(self):
-        return self.false_case
 
 
 class IrContext:
