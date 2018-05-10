@@ -22,20 +22,16 @@ class Literal(IrNode):
 
 
 class VariableDeclaration(IrNode):
-    def __init__(self, _id, _type, rhs=None):
+    def __init__(self, _id, _type):
         super().__init__()
         self._id = _id
         self._type = _type
-        self.rhs = rhs
 
     def get_id(self):
         return self._id
 
     def get_type(self):
         return self._type
-
-    def get_rhs(self):
-        return self.rhs
 
 
 class Name(IrNode):
