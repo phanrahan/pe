@@ -1,6 +1,7 @@
-from pe_ir_atom import Atom
+import pe_ir_atom
 
-class Op(Atom):
+
+class Op(pe_ir_atom.Atom):
     def __init__(self):
         super().__init__()
 

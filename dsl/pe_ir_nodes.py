@@ -1,9 +1,7 @@
-from pe_ir_atom import Atom
-from pe_ir_ops import *
-from pe_ir_types import *
+import pe_ir_atom
 
 
-class IrNode(Atom):
+class IrNode(pe_ir_atom.Atom):
     def __init__(self):
         super().__init__()
 
@@ -80,16 +78,3 @@ class SwitchCase(IrNode):
 
     def get_case_map(self):
         return self.case_map
-
-
-class IrContext:
-    def __init__(self):
-        self.nodes = []
-
-    def add_node(self, node):
-        if not isinstance(node, IrNode):
-            raise ValueError("node must be a proper IrNode")
-        self.nodes.append(node)
-
-    def get_nodes(self):
-        return self.nodes

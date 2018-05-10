@@ -1,7 +1,8 @@
 from enum import Enum
-from pe_ir_atom import Atom
+import pe_ir_atom
 
-class Type(Atom):
+
+class Type(pe_ir_atom.Atom):
     def __init__(self):
         super().__init__()
 
