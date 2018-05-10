@@ -66,7 +66,7 @@ def ConstructCpuIr():
         ctx.add_node(
             Assignment(
                 Name(name),
-                Operation(
+                Expression(
                     Slice(),
                     [Name('R'), Name(index)])))
     ctx.add_node(
@@ -83,33 +83,36 @@ def ConstructCpuIr():
     add_body = [
         Assignment(
             Name('reg_wb'),
-            Operation(
+            Expression(
                 Add(),
                 [Name('r_a'), Name('r_a')]))
     ]
     sub_body = [
         Assignment(
             Name('reg_wb'),
-            Operation(
+            Expression(
                 Sub(),
                 [Name('r_a'), Name('r_a')]))
     ]
     abs_body = [
         Assignment(
             Name('reg_wb'),
-            Ternary(
-                Operation(
-                    Slice(),
-                    [Name('r_a'), 15]),
-                Operation(
-                    Sub(),
-                    [Literal(QuantitativeType(REG_WIDTH), 0), Name('r_a')]),
-                Name('r_a')))
+            Expression(
+                Ternary(),
+                [
+                    Expression(
+                        Slice(),
+                        [Name('r_a'), 15]),
+                    Expression(
+                        Sub(),
+                        [Literal(QuantitativeType(REG_WIDTH), 0), Name('r_a')]),
+                    Name('r_a')
+                ]))
     ]
     mov_body = [
         Assignment(
             Name('reg_wb'),
-            Operation(
+            Expression(
                 Slice(),
                 [Name('M'), Name('r_a')]))
     ]
