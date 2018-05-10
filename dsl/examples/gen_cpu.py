@@ -1,4 +1,5 @@
 import math
+from bit_vector import BitVector
 import pe_ir_context as context
 import pe_ir_nodes as nodes
 import pe_ir_ops as ops
@@ -79,7 +80,7 @@ def construct_cpu_ir():
     ctx.add_node(
         nodes.Assignment(
             nodes.Name('reg_wb'),
-            nodes.Literal(types.QuantitativeType(REG_WIDTH), 0)))
+            nodes.Literal(types.QuantitativeType(REG_WIDTH), BitVector(0, REG_WIDTH))))
 
     add_body = [
         nodes.Assignment(
@@ -106,7 +107,7 @@ def construct_cpu_ir():
                         [nodes.Name('r_a'), 15]),
                     nodes.Expression(
                         ops.Sub(),
-                        [nodes.Literal(types.QuantitativeType(REG_WIDTH), 0), nodes.Name('r_a')]),
+                        [nodes.Literal(types.QuantitativeType(REG_WIDTH), BitVector(0, 16)), nodes.Name('r_a')]),
                     nodes.Name('r_a')
                 ]))
     ]
