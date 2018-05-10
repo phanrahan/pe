@@ -25,9 +25,8 @@ class BitVectorType(Type):
 
 
 class NominalType(EnumType):
+    # @value_set should be a python set.
     def __init__(self, value_set):
-        if not isinstance(value_set, set):
-            raise ValueError("value_set must be a python set")
         super().__init__(value_set)
 
 
@@ -37,11 +36,8 @@ class QuantitativeType(BitVectorType):
 
 
 class NestedType(Type):
+    # @base_type should be either of type NominalType of QuantitativeType.
     def __init__(self, base_type):
-        if type(base_type) != NominalType and \
-           type(base_type) != QuantitativeType:
-            raise ValueError("base_type must either be of type NominalType "
-                             "or QuantitativeType")
         super().__init__()
         self.base_type = base_type
 
@@ -84,8 +80,6 @@ class NominalRegisterType(NominalType):
 class QuantitativeRegisterFileType(Type):
     def __init__(self, width, height, is_memory=False):
         super().__init__()
-        if not isinstance(is_memory, bool):
-            raise ValueError("is_memory must be a bool")
         self.width = width
         self.height = height
         self.is_memory = is_memory
