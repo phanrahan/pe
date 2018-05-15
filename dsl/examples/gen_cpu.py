@@ -9,7 +9,7 @@ import pe_ir_types as types
 def construct_cpu_ir():
     ctx = context.IrContext()
 
-    instruction_choices = set(['add', 'sub', 'abs', 'ld'])
+    instruction_choices = set(['add', 'sub', 'abs', 'mov', 'addi'])
     instruction_type = types.NominalType(instruction_choices)
 
     ctx.add_node(
@@ -28,7 +28,7 @@ def construct_cpu_ir():
 
     NUM_REGISTERS = 32
     REG_WIDTH = 16
-    reg_bits = math.log(NUM_REGISTERS, 2)
+    reg_bits = math.ceil(math.log(NUM_REGISTERS, 2))
     ctx.add_node(
         nodes.VariableDeclaration(
             'r',
@@ -45,7 +45,7 @@ def construct_cpu_ir():
         ('src0', reg_bits),
         ('src1', reg_bits),
         ('dst', reg_bits),
-        ('imm', 10)]
+        ('imm', 16)]
     for name, width in instr_fields:
         ctx.add_node(
             nodes.VariableDeclaration(
@@ -70,7 +70,7 @@ def construct_cpu_ir():
                 nodes.Name(name),
                 nodes.Expression(
                     ops.Slice(),
-                    [nodes.Name('R'), nodes.Name(index)])))
+                    [nodes.Name('r'), nodes.Name(index)])))
     ctx.add_node(
         nodes.VariableDeclaration(
             'reg_wb',
@@ -87,14 +87,14 @@ def construct_cpu_ir():
             nodes.Name('reg_wb'),
             nodes.Expression(
                 ops.Add(),
-                [nodes.Name('r_a'), nodes.Name('r_a')]))
+                [nodes.Name('r_a'), nodes.Name('r_b')]))
     ]
     sub_body = [
         nodes.Assignment(
             nodes.Name('reg_wb'),
             nodes.Expression(
                 ops.Sub(),
-                [nodes.Name('r_a'), nodes.Name('r_a')]))
+                [nodes.Name('r_a'), nodes.Name('r_b')]))
     ]
     abs_body = [
         nodes.Assignment(
@@ -107,7 +107,9 @@ def construct_cpu_ir():
                         [nodes.Name('r_a'), 15]),
                     nodes.Expression(
                         ops.Sub(),
-                        [nodes.Literal(types.QuantitativeType(REG_WIDTH), BitVector(0, 16)), nodes.Name('r_a')]),
+                        [nodes.Literal(types.QuantitativeType(REG_WIDTH),
+                                       BitVector(0, 16)),
+                         nodes.Name('r_a')]),
                     nodes.Name('r_a')
                 ]))
     ]
@@ -118,17 +120,32 @@ def construct_cpu_ir():
                 ops.Slice(),
                 [nodes.Name('M'), nodes.Name('r_a')]))
     ]
+    addi_body = [
+        nodes.Assignment(
+            nodes.Name('reg_wb'),
+            nodes.Expression(
+                ops.Add(),
+                [nodes.Name('r_a'), nodes.Name('imm')]))
+    ]
 
     instruction_case_map = {
         nodes.Literal(instruction_type, 'add'): add_body,
         nodes.Literal(instruction_type, 'sub'): sub_body,
         nodes.Literal(instruction_type, 'abs'): abs_body,
         nodes.Literal(instruction_type, 'mov'): mov_body,
+        nodes.Literal(instruction_type, 'addi'): addi_body,
     }
 
     ctx.add_node(
         nodes.SwitchCase(
             nodes.Name('instruction'),
             instruction_case_map))
+
+    ctx.add_node(
+        nodes.Assignment(
+            nodes.Expression(
+                ops.Slice(),
+                [nodes.Name('r'), nodes.Name('dst')]),
+            nodes.Name('reg_wb')))
 
     return ctx
