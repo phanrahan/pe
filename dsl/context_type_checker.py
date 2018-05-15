@@ -82,7 +82,7 @@ class GenericLiteralError(TypeCheckError):
 
     def __str__(self):
         return ("Literal value %s is not compatible with type %s" %
-                (str(value), type(_type).__name__))
+                (str(self.value), type(self._type).__name__))
 
 
 class ArgumentMismatchError(TypeCheckError):
