@@ -1,16 +1,19 @@
 import pe_ir_atom
 
 
+# Base interface for all ops.
 class Op(pe_ir_atom.Atom):
     def __init__(self):
         super().__init__()
 
 
-class Slice(Op):
+# Unary logic ops.
+class Not(Op):
     def __init__(self):
         super().__init__()
 
 
+# Binary arithmetic ops.
 class Add(Op):
     def __init__(self):
         super().__init__()
@@ -21,11 +24,12 @@ class Sub(Op):
         super().__init__()
 
 
-class Not(Op):
+# Special ops.
+class Ternary(Op):
     def __init__(self):
         super().__init__()
 
 
-class Ternary(Op):
+class Slice(Op):
     def __init__(self):
         super().__init__()
