@@ -1,4 +1,8 @@
+import collections
+import random
+import bit_vector
 import dsl_compiler
+import dsl_functional_model_backend
 
 
 def my_pe():
@@ -7,16 +11,33 @@ def my_pe():
         SUB = 1
 
     in0 = Input(BitVector(8))
-    in1 = Input(Encoded(BitVector(8), val, Op, op))
+    in1 = Input(BitVector(8))
+    op = Input(Op)
+    prev = Intermediate(Register(BitVector(8)))
+    prev_out = Output(BitVector(8))
     out = Output(BitVector(8))
-    if in1.op == Op.ADD:
-        out.assign(in0 + in1.val)
+    if op == Op.ADD:
+        out.assign(in0 + in1)
     else:
-        out.assign(in0 - in1.val)
+        out.assign(in0 - in1)
+    prev.assign(out)
+    prev_out.assign(prev)
+
+
+def to_namedtuple(d):
+    return collections.namedtuple('NT', d.keys())(**d)
+
+
+def random_bv(width):
+    value = random.randint(0, 1 << width - 1)
+    return bit_vector.BitVector(value=value, num_bits=width)
 
 
 if __name__ == '__main__':
     compiler = dsl_compiler.DslCompiler()
     ir = compiler.compile(my_pe)
 
-    print (ir.src_filename, ir.io, ir.intermediates, ir.module)
+    backend = dsl_functional_model_backend.DslFunctionalModelBackend(ir, add_type_checks=True)
+    cls = backend.generate()
+    inst = cls()
+    print (inst(in0=random_bv(8), in1=random_bv(8), op=cls.Op.ADD))
