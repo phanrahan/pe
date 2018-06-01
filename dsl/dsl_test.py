@@ -3,6 +3,7 @@ import random
 import bit_vector
 import dsl_compiler
 import dsl_functional_model_backend
+import dsl_type_check_pass
 
 
 def my_pe():
@@ -36,6 +37,12 @@ def random_bv(width):
 if __name__ == '__main__':
     compiler = dsl_compiler.DslCompiler()
     ir = compiler.compile(my_pe)
+
+    try:
+        pass_ = dsl_type_check_pass.DslTypeCheckPass(ir)
+        pass_.run()
+    except dsl_type_check_pass.DslTypeCheckError as e:
+        raise e.get_exception() from None
 
     backend = dsl_functional_model_backend.DslFunctionalModelBackend(ir, add_type_checks=True)
     cls = backend.generate()
