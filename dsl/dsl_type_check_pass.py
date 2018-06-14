@@ -1,5 +1,6 @@
 import ast
 import enum
+import math
 import dsl_ir
 import dsl_pass
 import dsl_types
@@ -70,6 +71,15 @@ class TypeTable:
         self.__table[key] = value
 
 
+class IntType:
+    def __init__(self, value : int):
+        self.__value = value
+
+    @property
+    def value(self):
+        return self.__value
+
+
 class DslTypeCheckPass(dsl_pass.DslPass):
     def __init__(self, ir : dsl_ir.Ir):
         super().__init__(ir)
@@ -111,21 +121,41 @@ class DslTypeCheckPass(dsl_pass.DslPass):
             return False
 
         def get_bin_op_type(left, right, op):
-            if isinstance(left, dsl_types.BitVector) and \
-               isinstance(right, dsl_types.BitVector) and \
-               left.width == right.width and \
-               isinstance(op, (ast.Add, ast.Sub)):
-                return left
+            SIMPLE_OPS = (ast.Add, ast.Sub, ast.BitAnd, ast.BitOr)
+            if isinstance(left, dsl_types.BitVector):
+                if isinstance(op, SIMPLE_OPS) and \
+                   isinstance(right, dsl_types.BitVector) and \
+                   left.width == right.width:
+                    return left
+                if isinstance(op, ast.LShift) and \
+                   isinstance(right, IntType):
+                    return dsl_types.BitVector(left.width + right.value)
+
+        def get_unary_op_type(operand, op):
+            if isinstance(operand, dsl_types.BitVector):
+                if isinstance(op, (ast.Invert)):
+                    return operand
 
         def get_subscript_type(left, right):
             if isinstance(left, dsl_types.Array):
-                if right == int:
+                if isinstance(right, IntType) and \
+                   right.value in range(0, left.size):
                     return left.type
+            if isinstance(left, dsl_types.BitVector):
+                if isinstance(right, IntType) and \
+                   right.value in range(0, left.width):
+                    return dsl_types.BitVector(1)
+                if isinstance(right, dsl_types.BitVector) and \
+                   right.width == math.log(left.width, 2):
+                    return dsl_types.BitVector(1)
             return None
 
         class Visitor(ast.NodeVisitor):
             def __init__(self):
                 pass
+
+            def visit_Num(self, node):
+                types[node] = TypeTable.Entry(IntType(node.n), False)
 
             def visit_BinOp(self, node):
                 self.visit(node.left)
@@ -138,14 +168,19 @@ class DslTypeCheckPass(dsl_pass.DslPass):
                     raise Exception()
                 types[node] = TypeTable.Entry(ret, False)
 
+            def visit_UnaryOp(self, node):
+                self.visit(node.operand)
+                op = node.op
+                operand = types[node.operand].type
+                ret = get_unary_op_type(operand, op)
+                if ret is None:
+                    raise Exception()
+                types[node] = TypeTable.Entry(ret, False)
+
             def visit_Index(self, node):
                 value = node.value
-                def get_info():
-                    if isinstance(value, ast.Num):
-                        return int
-                ret = get_info()
-                assert(ret is not None)
-                types[node] = TypeTable.Entry(ret, False)
+                self.visit(value)
+                types[node] = TypeTable.Entry(types[value].type, False)
 
             def visit_Subscript(self, node):
                 self.visit(node.value)
