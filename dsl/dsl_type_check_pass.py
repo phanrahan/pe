@@ -120,7 +120,7 @@ class DslTypeCheckPass(dsl_pass.DslPass):
         def get_subscript_type(left, right):
             if isinstance(left, dsl_types.Array):
                 if right == int:
-                    return left.t
+                    return left.type
             return None
 
         class Visitor(ast.NodeVisitor):

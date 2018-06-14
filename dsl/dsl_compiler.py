@@ -45,11 +45,11 @@ class DslCompiler:
                                            match.data[0][1])
                 _type = match.data
                 if isinstance(_type, dsl_types.Input):
-                    inputs[_id] = _type.t
+                    inputs[_id] = _type.type
                 elif isinstance(_type, dsl_types.Output):
-                    outputs[_id] = _type.t
+                    outputs[_id] = _type.type
                 elif isinstance(_type, dsl_types.Intermediate):
-                    intermediates[_id] = _type.t
+                    intermediates[_id] = _type.type
                 else:
                     raise TypeError("Expected top level type")
                 return None

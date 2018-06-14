@@ -1,4 +1,3 @@
-import ast
 import enum
 from typing import Dict
 
@@ -6,23 +5,24 @@ from typing import Dict
 '''
 Type system abstract grammar:
 
-BaseType ::= BitVector(int w)
-           | Enum(str id)
+BaseType ::= BitVector(int width)
+           | Enum(enum.EnumMeta enum_cls)
 
 UnqualifiedType ::= BaseType
-                  | Array(UnqualifiedType t)
-                  | Encoded((BaseType t, str id)+)
+                  | Array(UnqualifiedType type, int size)
+                  | Encoded(Dict[str, BaseType])
 
 QualifiedType ::= UnqualifiedType
-                | Register(QualifiedType t)
-                | Configuration(QualifiedType t)
+                | Register(QualifiedType type)
+                | Configuration(QualifiedType type)
 
-TopLevelType ::= Input(QualifiedType t)
-               | Output(QualifiedType t)
-               | Intermediate(QualifiedType t)
+TopLevelType ::= Input(QualifiedType type)
+               | Output(QualifiedType type)
+               | Intermediate(QualifiedType type)
 '''
 
-class QualifiedType:
+
+class QualifiedType():
     pass
 
 
@@ -34,141 +34,114 @@ class BaseType(UnqualifiedType):
     pass
 
 
-class Enum(BaseType):
-    def __init__(self, enum_cls : enum.EnumMeta):
-        if not isinstance(enum_cls, enum.EnumMeta):
-            raise TypeError("enum_cls should be an enum.EnumMeta")
-        self.__enum_cls = enum_cls
-
-    @property
-    def enum_cls(self):
-        return self.__enum_cls
-
-    def __repr__(self):
-        return "enum %s" % self.enum_cls.__name__
-
-
 class BitVector(BaseType):
     def __init__(self, width : int):
         if not isinstance(width, int):
-            raise TypeError("width should be an int")
+            raise TypeError("expected width to be int")
         self.__width = width
 
     @property
     def width(self):
         return self.__width
 
-    def __repr__(self):
-        return "BitVector<%d>" % self.width
+
+class Enum(BaseType):
+    def __init__(self, enum_cls : enum.EnumMeta):
+        if not isinstance(enum_cls, enum.EnumMeta):
+            raise TypeError("expected enum_cls to be enum.EnumMeta")
+        self.__enum_cls = enum_cls
+
+    @property
+    def enum_cls(self):
+        return self.__enum_cls
 
 
 class Array(UnqualifiedType):
-    def __init__(self, t : UnqualifiedType, size : int):
-        if not isinstance(t, UnqualifiedType):
-            raise TypeError("t should be an UnqualifiedType")
+    def __init__(self, type : BaseType, size : int):
+        if not isinstance(type, BaseType):
+            raise TypeError("expected type to be BaseType")
         if not isinstance(size, int):
-            raise TypeError("size should be an int")
-        self.__t = t
+            raise TypeError("expected size to be int")
+        self.__type = type
         self.__size = size
 
     @property
-    def t(self):
-        return self.__t
+    def type(self):
+        return self.__type
 
     @property
     def size(self):
         return self.__size
 
-    def __repr__(self):
-        return "Array<%s, %d>" % (self.t, self.size)
-
 
 class Encoded(UnqualifiedType):
-    def __init__(self, encoding : Dict[str, BaseType]):
-        if not isinstance(encoding, dict):
-            raise TypeError("encoding should be a dict")
+    def __init__(self, encoding : Dict[str,BaseType]):
+        if not isinstance(encoding, Dict[str,BaseType]):
+            raise TypeError("expected encoding to be Dict[str,BaseType]")
         self.__encoding = encoding
 
     @property
     def encoding(self):
         return self.__encoding
 
-    def __repr__(self):
-        return "Encoded<%s>" % self.encoding
+
+class Register(QualifiedType):
+    def __init__(self, type : QualifiedType):
+        if not isinstance(type, QualifiedType):
+            raise TypeError("expected type to be QualifiedType")
+        self.__type = type
+
+    @property
+    def type(self):
+        return self.__type
 
 
 class Configuration(QualifiedType):
-    def __init__(self, t : QualifiedType):
-        if not isinstance(t, QualifiedType):
-            raise TypeError("t should be a QualifiedType")
-        self.__t = t
+    def __init__(self, type : QualifiedType):
+        if not isinstance(type, QualifiedType):
+            raise TypeError("expected type to be QualifiedType")
+        self.__type = type
 
     @property
-    def t(self):
-        return self.__t
-
-    def __repr__(self):
-        return "Configuration<%s>" % self.t
+    def type(self):
+        return self.__type
 
 
-class Register(QualifiedType):
-    def __init__(self, t : QualifiedType):
-        if not isinstance(t, QualifiedType):
-            raise TypeError("t should be a QualifiedType")
-        self.__t = t
-
-    @property
-    def t(self):
-        return self.__t
-
-    def __repr__(self):
-        return "Register<%s>" % self.t
-
-
-class TopLevelType:
+class TopLevelType():
     pass
 
 
 class Input(TopLevelType):
-    def __init__(self, t : QualifiedType):
-        if not isinstance(t, QualifiedType):
-            raise TypeError("t should be a QualifiedType")
-        self.__t = t
+    def __init__(self, type : QualifiedType):
+        if not isinstance(type, QualifiedType):
+            raise TypeError("expected type to be QualifiedType")
+        self.__type = type
 
     @property
-    def t(self):
-        return self.__t
-
-    def __repr__(self):
-        return "Input<%s>" % self.t
+    def type(self):
+        return self.__type
 
 
 class Output(TopLevelType):
-    def __init__(self, t : QualifiedType):
-        if not isinstance(t, QualifiedType):
-            raise TypeError("t should be a QualifiedType")
-        self.__t = t
+    def __init__(self, type : QualifiedType):
+        if not isinstance(type, QualifiedType):
+            raise TypeError("expected type to be QualifiedType")
+        self.__type = type
 
     @property
-    def t(self):
-        return self.__t
-
-    def __repr__(self):
-        return "Output<%s>" % self.t
+    def type(self):
+        return self.__type
 
 
 class Intermediate(TopLevelType):
-    def __init__(self, t : QualifiedType):
-        if not isinstance(t, QualifiedType):
-            raise TypeError("t should be a QualifiedType")
-        self.__t = t
+    def __init__(self, type : QualifiedType):
+        if not isinstance(type, QualifiedType):
+            raise TypeError("expected type to be QualifiedType")
+        self.__type = type
 
     @property
-    def t(self):
-        return self.__t
-
-    def __repr__(self):
-        return "Intermediate<%s>" % self.t
+    def type(self):
+        return self.__type
 
 
 class TypeHelper:
@@ -176,7 +149,7 @@ class TypeHelper:
         @staticmethod
         def create(type_ : QualifiedType):
             if not isinstance(type_, QualifiedType):
-                raise TypeError("Expected QualifiedType")
+                raise TypeError("expected QualifiedType")
             return TypeHelper.TypeInfo(
                 TypeHelper.get_qualifiers(type_),
                 TypeHelper.get_base_type(type_),
@@ -219,29 +192,29 @@ class TypeHelper:
         if isinstance(type_, (BaseType, UnqualifiedType)):
             return set()
         if isinstance(type_, Configuration):
-            return set([Configuration]) | TypeHelper.get_qualifiers(type_.t)
+            return set([Configuration]) | TypeHelper.get_qualifiers(type_.type)
         if isinstance(type_, Register):
-            return set([Register]) | TypeHelper.get_qualifiers(type_.t)
-        raise TypeError("Expected type_ to be DSL type")
+            return set([Register]) | TypeHelper.get_qualifiers(type_.type)
+        raise TypeError("expected type_ to be DSL type")
 
     @staticmethod
     def get_base_type(type_):
         if isinstance(type_, BaseType):
             return type_
         if isinstance(type_, Array):
-            return TypeHelper.get_base_type(type_.t)
+            return TypeHelper.get_base_type(type_.type)
         if isinstance(type_, Encoded):
             return None
         if isinstance(type_, QualifiedType):
-            return TypeHelper.get_base_type(type_.t)
-        raise TypeError("Expected type_ to be DSL type")
+            return TypeHelper.get_base_type(type_.type)
+        raise TypeError("expected type_ to be DSL type")
 
     @staticmethod
     def get_unqualified_type(type_):
         if isinstance(type_, UnqualifiedType):
             return type_
         if isinstance(type_, QualifiedType):
-            return TypeHelper.get_unqualified_type(type_.t)
+            return TypeHelper.get_unqualified_type(type_.type)
         raise TypeError("Expected type_ to be DSL type")
 
     @staticmethod
