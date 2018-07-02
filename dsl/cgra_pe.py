@@ -60,11 +60,19 @@ def my_pe():
 
     instruction = Input(Configuration(Op))
 
+    # Dynamic inputs.
     data0 = Input(BitVector(16))
     data1 = Input(BitVector(16))
     bit0 = Input(BitVector(1))
     bit1 = Input(BitVector(1))
     bit2 = Input(BitVector(1))
+
+    # Data registers.
+    data0_reg = Intermediate(Register(BitVector(16)))
+    data1_reg = Intermediate(Register(BitVector(16)))
+    bit0_reg = Intermediate(Register(BitVector(1)))
+    bit1_reg = Intermediate(Register(BitVector(1)))
+    bit2_reg = Intermediate(Register(BitVector(1)))
 
     # Two outputs: result and predicate.
     res = Output(BitVector(16))
