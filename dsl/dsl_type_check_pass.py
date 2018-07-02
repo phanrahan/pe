@@ -122,14 +122,15 @@ class DslTypeCheckPass(dsl_pass.DslPass):
 
         def get_bin_op_type(left, right, op):
             SIMPLE_OPS = (ast.Add, ast.Sub, ast.BitAnd, ast.BitOr)
+            LOGICAL_SHIFTS = (ast.LShift, ast.RShift)
             if isinstance(left, dsl_types.BitVector):
                 if isinstance(op, SIMPLE_OPS) and \
                    isinstance(right, dsl_types.BitVector) and \
                    left.width == right.width:
                     return left
-                if isinstance(op, ast.LShift) and \
-                   isinstance(right, IntType):
-                    return dsl_types.BitVector(left.width + right.value)
+                if isinstance(op, LOGICAL_SHIFTS) and \
+                   isinstance(right, (IntType, dsl_types.BitVector)):
+                    return dsl_types.BitVector(left.width)
 
         def get_unary_op_type(operand, op):
             if isinstance(operand, dsl_types.BitVector):
