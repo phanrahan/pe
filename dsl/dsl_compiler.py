@@ -9,6 +9,8 @@ import dsl_type_matcher
 
 
 class DslCompiler:
+    BUILTINS = ["concat"]
+
     def __init__(self):
         pass
 
@@ -20,7 +22,8 @@ class DslCompiler:
         intermediates = {}
 
         def name_declared(_id):
-            return _id in (inputs.keys() |
+            return _id in (DslCompiler.BUILTINS |
+                           inputs.keys() |
                            outputs.keys() |
                            intermediates.keys() |
                            user_defined_types.keys())
@@ -55,6 +58,8 @@ class DslCompiler:
 
             def visit_Name(self, node):
                 if name_declared(node.id):
+                    return node
+                if node.id in DslCompiler.BUILTINS:
                     return node
                 raise DslCompilerError(
                     "Name %s used before declaration" % node.id,

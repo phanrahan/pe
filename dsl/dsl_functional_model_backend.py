@@ -170,6 +170,9 @@ class DslFunctionalModelBackend(dsl_backend.DslBackend):
             with open(self.__debug_src_file, 'w') as f:
                 f.write(src)
 
+        builtins_ = {
+            "concat" : bit_vector.BitVector.concat,
+        }
         ctx = {
             "ast" : ast,
             "namedtuple" : collections.namedtuple,
@@ -178,7 +181,9 @@ class DslFunctionalModelBackend(dsl_backend.DslBackend):
             "type_check_input" : lambda n, v : self.__type_check_input(n, v),
             "user_defined_types" : self._ir.user_defined_types.types,
             "module_code" : self.get_module_code(),
+            "builtins_" : builtins_,
         }
+
         if self.__debug_src_file is not None:
             compiled = compile(src, self.__debug_src_file, mode="exec")
             exec(compiled, ctx)

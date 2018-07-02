@@ -150,6 +150,12 @@ class DslTypeCheckPass(dsl_pass.DslPass):
                     return dsl_types.BitVector(1)
             return None
 
+        def get_concat_type(left, right):
+            if isinstance(left, dsl_types.BitVector) and \
+               isinstance(right, dsl_types.BitVector):
+                return dsl_types.BitVector(left.width + right.width)
+            return None
+
         class Visitor(ast.NodeVisitor):
             def __init__(self):
                 pass
@@ -206,6 +212,26 @@ class DslTypeCheckPass(dsl_pass.DslPass):
                     return
                 raise ComparisonTypeError(
                     left_type, right_type, op, filename, node)
+
+            def visit_Call(self, node):
+                func = node.func
+                args = node.args
+                kws = node.keywords
+                for arg in args:
+                    self.visit(arg)
+                for kw in kws:
+                    self.visit(kw)
+                if isinstance(func, ast.Name):
+                    id_ = func.id
+                    if id_ == "concat":
+                        if len(args) != 2 or len(kws) != 0:
+                            raise Exception()
+                        left = types[args[0]]
+                        right = types[args[1]]
+                        ret = get_concat_type(left.type, right.type)
+                        if ret is None:
+                            raise Exception()
+                        types[node] = TypeTable.Entry(ret, False)
 
             def visit_Assign(self, node):
                 assert(len(node.targets) == 1)

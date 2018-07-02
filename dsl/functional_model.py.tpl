@@ -35,6 +35,8 @@ class {{ CLS_NAME }}:
         self.__globals["{{ t }}"] = {{ CLS_NAME }}.{{ t }}
         {% endfor %}
 
+        self.__globals["__builtins__"] = builtins_
+
         return
 
     def __call__(self, **kwargs):
