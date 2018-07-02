@@ -44,6 +44,9 @@ class BitVector(BaseType):
     def width(self):
         return self.__width
 
+    def __repr__(self):
+        return "BitVector<%d>" % self.width
+
 
 class Enum(BaseType):
     def __init__(self, enum_cls : enum.EnumMeta):
@@ -54,6 +57,9 @@ class Enum(BaseType):
     @property
     def enum_cls(self):
         return self.__enum_cls
+
+    def __repr__(self):
+        return "enum %s" % self.enum_cls.__name__
 
 
 class Array(UnqualifiedType):
@@ -73,6 +79,9 @@ class Array(UnqualifiedType):
     def size(self):
         return self.__size
 
+    def __repr__(self):
+        return "Array<%s, %d>" % (self.t, self.size)
+
 
 class Encoded(UnqualifiedType):
     def __init__(self, encoding : Dict[str,BaseType]):
@@ -83,6 +92,9 @@ class Encoded(UnqualifiedType):
     @property
     def encoding(self):
         return self.__encoding
+
+    def __repr__(self):
+        return "Encoded<%s>" % self.encoding
 
 
 class Register(QualifiedType):
@@ -95,6 +107,9 @@ class Register(QualifiedType):
     def type(self):
         return self.__type
 
+    def __repr__(self):
+        return "Register<%s>" % self.t
+
 
 class Configuration(QualifiedType):
     def __init__(self, type : QualifiedType):
@@ -105,6 +120,9 @@ class Configuration(QualifiedType):
     @property
     def type(self):
         return self.__type
+
+    def __repr__(self):
+        return "Configuration<%s>" % self.t
 
 
 class TopLevelType():
@@ -121,6 +139,9 @@ class Input(TopLevelType):
     def type(self):
         return self.__type
 
+    def __repr__(self):
+        return "Input<%s>" % self.t
+
 
 class Output(TopLevelType):
     def __init__(self, type : QualifiedType):
@@ -132,6 +153,9 @@ class Output(TopLevelType):
     def type(self):
         return self.__type
 
+    def __repr__(self):
+        return "Output<%s>" % self.t
+
 
 class Intermediate(TopLevelType):
     def __init__(self, type : QualifiedType):
@@ -142,6 +166,9 @@ class Intermediate(TopLevelType):
     @property
     def type(self):
         return self.__type
+
+    def __repr__(self):
+        return "Intermediate<%s>" % self.t
 
 
 class TypeHelper:
