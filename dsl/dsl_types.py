@@ -80,7 +80,7 @@ class Array(UnqualifiedType):
         return self.__size
 
     def __repr__(self):
-        return "Array<%s, %d>" % (self.t, self.size)
+        return "Array<%s, %d>" % (self.type, self.size)
 
 
 class Encoded(UnqualifiedType):
@@ -108,7 +108,7 @@ class Register(QualifiedType):
         return self.__type
 
     def __repr__(self):
-        return "Register<%s>" % self.t
+        return "Register<%s>" % self.type
 
 
 class Configuration(QualifiedType):
@@ -122,7 +122,7 @@ class Configuration(QualifiedType):
         return self.__type
 
     def __repr__(self):
-        return "Configuration<%s>" % self.t
+        return "Configuration<%s>" % self.type
 
 
 class TopLevelType():
@@ -140,7 +140,7 @@ class Input(TopLevelType):
         return self.__type
 
     def __repr__(self):
-        return "Input<%s>" % self.t
+        return "Input<%s>" % self.type
 
 
 class Output(TopLevelType):
@@ -154,7 +154,7 @@ class Output(TopLevelType):
         return self.__type
 
     def __repr__(self):
-        return "Output<%s>" % self.t
+        return "Output<%s>" % self.type
 
 
 class Intermediate(TopLevelType):
@@ -168,7 +168,7 @@ class Intermediate(TopLevelType):
         return self.__type
 
     def __repr__(self):
-        return "Intermediate<%s>" % self.t
+        return "Intermediate<%s>" % self.type
 
 
 class TypeHelper:
