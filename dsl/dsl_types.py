@@ -85,7 +85,7 @@ class Array(UnqualifiedType):
 
 class Encoded(UnqualifiedType):
     def __init__(self, encoding : Dict[str,BaseType]):
-        if not isinstance(encoding, Dict[str,BaseType]):
+        if not isinstance(encoding, dict):
             raise TypeError("expected encoding to be Dict[str,BaseType]")
         self.__encoding = encoding
 

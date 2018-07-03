@@ -45,20 +45,19 @@ def my_pe():
     debug_trig = Input(Configuration(BitVector(16)))
     debug_trig_p = Input(Configuration(BitVector(1)))
 
-    data0_mode = Input(Configuration(RegMode))
-    data1_mode = Input(Configuration(RegMode))
-    bit0_mode = Input(Configuration(RegMode))
-    bit1_mode = Input(Configuration(RegMode))
-    bit2_mode = Input(Configuration(RegMode))
-
-    flag_sel = Input(Configuration(FlagSel))
-
-    irq_enable_0 = Input(Configuration(BitVector(1)))
-    irq_enable_1 = Input(Configuration(BitVector(1)))
-    acc_en = Input(Configuration(BitVector(1)))
-    signed = Input(Configuration(BitVector(1)))
-
-    instruction = Input(Configuration(Op))
+    op_code = Input(Configuration(Encoded(
+        RegMode, bit2_mode,
+        RegMode, bit1_mode,
+        RegMode, bit0_mode,
+        RegMode, data1_mode,
+        RegMode, data0_mode,
+        FlagSel, flag_sel,
+        BitVector(1), irq_enable_1,
+        BitVector(1), irq_enable_0,
+        BitVector(1), acc_en,
+        BitVector(1), signed,
+        Op, operation,
+    )))
 
     # Dynamic inputs.
     data0 = Input(BitVector(16))
@@ -89,42 +88,42 @@ def my_pe():
 
     lut_index.assign(concat(bit2, concat(bit1, bit0)))
 
-    # Instruction logic.
-    if instruction == Op.ADD:
+    # Operation logic.
+    if op_code.operation == Op.ADD:
         res.assign(data0 + data1)
-    elif instruction == Op.SUB:
+    elif op_code.operation == Op.SUB:
         res.assign(data0 - data1)
 
     # Flag selection logic.
-    if flag_sel == FlagSel.Z:
+    if op_code.flag_sel == FlagSel.Z:
         res_p.assign(z)
-    elif flag_sel == FlagSel.NOT_Z:
+    elif op_code.flag_sel == FlagSel.NOT_Z:
         res_p.assign(~z)
-    elif flag_sel == FlagSel.C:
+    elif op_code.flag_sel == FlagSel.C:
         res_p.assign(c)
-    elif flag_sel == FlagSel.NOT_C:
+    elif op_code.flag_sel == FlagSel.NOT_C:
         res_p.assign(~c)
-    elif flag_sel == FlagSel.N:
+    elif op_code.flag_sel == FlagSel.N:
         res_p.assign(n)
-    elif flag_sel == FlagSel.NOT_N:
+    elif op_code.flag_sel == FlagSel.NOT_N:
         res_p.assign(~n)
-    elif flag_sel == FlagSel.V:
+    elif op_code.flag_sel == FlagSel.V:
         res_p.assign(v)
-    elif flag_sel == FlagSel.NOT_V:
+    elif op_code.flag_sel == FlagSel.NOT_V:
         res_p.assign(~v)
-    elif flag_sel == FlagSel.C_AND_NOT_Z:
+    elif op_code.flag_sel == FlagSel.C_AND_NOT_Z:
         res_p.assign(c & ~z)
-    elif flag_sel == FlagSel.NOT_C_OR_Z:
+    elif op_code.flag_sel == FlagSel.NOT_C_OR_Z:
         res_p.assign(~c | z)
-    elif flag_sel == FlagSel.N_EQUAL_V:
+    elif op_code.flag_sel == FlagSel.N_EQUAL_V:
         res_p.assign(n == v)
-    elif flag_sel == FlagSel.N_NOT_EQUAL_V:
+    elif op_code.flag_sel == FlagSel.N_NOT_EQUAL_V:
         res_p.assign(n != v)
-    elif flag_sel == FlagSel.NOT_Z_AND_N_EQUAL_V:
+    elif op_code.flag_sel == FlagSel.NOT_Z_AND_N_EQUAL_V:
         res_p.assign(~z & (n == v))
-    elif flag_sel == FlagSel.Z_OR_N_NOT_EQUAL_V:
+    elif op_code.flag_sel == FlagSel.Z_OR_N_NOT_EQUAL_V:
         res_p.assign(z | (n != v))
-    elif flag_sel == FlagSel.LUT_CODE:
+    elif op_code.flag_sel == FlagSel.LUT_CODE:
         res_p.assign((lut_code >> lut_index)[0])
     else:
         res_p.assign(bit0)
@@ -165,17 +164,19 @@ if __name__ == '__main__':
         "bit2_const" : random_bv(1),
         "debug_trig" : random_bv(16),
         "debug_trig_p" : random_bv(1),
-        "data0_mode" : cls.RegMode.BYPASS,
-        "data1_mode" : cls.RegMode.BYPASS,
-        "bit0_mode" : cls.RegMode.BYPASS,
-        "bit1_mode" : cls.RegMode.BYPASS,
-        "bit2_mode" : cls.RegMode.BYPASS,
-        "flag_sel" : cls.FlagSel.LUT_CODE,
-        "irq_enable_0" : random_bv(1),
-        "irq_enable_1" : random_bv(1),
-        "acc_en" : random_bv(1),
-        "signed" : random_bv(1),
-        "instruction" : cls.Op.ADD,
+        "op_code" : to_namedtuple({
+            "data0_mode" : cls.RegMode.BYPASS,
+            "data1_mode" : cls.RegMode.BYPASS,
+            "bit0_mode" : cls.RegMode.BYPASS,
+            "bit1_mode" : cls.RegMode.BYPASS,
+            "bit2_mode" : cls.RegMode.BYPASS,
+            "flag_sel" : cls.FlagSel.LUT_CODE,
+            "irq_enable_0" : random_bv(1),
+            "irq_enable_1" : random_bv(1),
+            "acc_en" : random_bv(1),
+            "signed" : random_bv(1),
+            "operation" : cls.Op.ADD,
+        }),
     }
     inputs = {
         "data0" : random_bv(16),
