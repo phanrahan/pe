@@ -8,32 +8,32 @@ import dsl_type_check_pass
 
 def my_pe():
     class FlagSel(Enum):
-        Z = 0
-        NOT_Z = 1
-        C = 2
-        NOT_C = 3
-        N = 4
-        NOT_N = 5
-        V = 6
-        NOT_V = 7
-        C_AND_NOT_Z = 8
-        NOT_C_OR_Z = 9
-        N_EQUAL_V = 10
-        N_NOT_EQUAL_V = 11
-        NOT_Z_AND_N_EQUAL_V = 12
-        Z_OR_N_NOT_EQUAL_V = 13
-        LUT_CODE = 14
-        COMP_RES_P = 15
+        Z = auto()
+        NOT_Z = auto()
+        C = auto()
+        NOT_C = auto()
+        N = auto()
+        NOT_N = auto()
+        V = auto()
+        NOT_V = auto()
+        C_AND_NOT_Z = auto()
+        NOT_C_OR_Z = auto()
+        N_EQUAL_V = auto()
+        N_NOT_EQUAL_V = auto()
+        NOT_Z_AND_N_EQUAL_V = auto()
+        Z_OR_N_NOT_EQUAL_V = auto()
+        LUT_CODE = auto()
+        COMP_RES_P = auto()
 
     class RegMode(Enum):
-        CONST = 0
-        VALID = 1
-        BYPASS = 2
-        DELAY = 3
+        CONST = auto()
+        VALID = auto()
+        BYPASS = auto()
+        DELAY = auto()
 
     class Op(Enum):
-        ADD = 0
-        SUB = 1
+        ADD = auto()
+        SUB = auto()
 
     # Decalre all configuration state here.
     lut_code = Input(Configuration(BitVector(8)))

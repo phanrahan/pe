@@ -90,7 +90,7 @@ class DslCompiler:
                    node.bases[0].id == "Enum":
                     name = node.name
                     compiled = compile(ast.Module([node]), filename, mode='exec')
-                    ctx = {"Enum" : enum.Enum}
+                    ctx = {"Enum" : enum.Enum, "auto" : enum.auto}
                     exec(compiled, ctx)
                     if name in user_defined_types:
                         raise DslCompilerError(
