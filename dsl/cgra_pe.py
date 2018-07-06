@@ -2,8 +2,10 @@ import collections
 import random
 import bit_vector
 import dsl_compiler
+import dsl_decode_specification
 import dsl_functional_model_backend
 import dsl_type_check_pass
+import verify_decode_specification
 
 
 def my_pe():
@@ -129,6 +131,57 @@ def my_pe():
         res_p.assign(bit0)
 
 
+def get_decode_spec():
+    EnumEncoding = dsl_decode_specification.EnumEncoding
+    d = dsl_decode_specification.DslDecodeSpecification()
+    flag_sel_mapping = {
+        "Z": 0,
+        "NOT_Z": 1,
+        "C": 2,
+        "NOT_C": 3,
+        "N": 4,
+        "NOT_N": 5,
+        "V": 6,
+        "NOT_V": 7,
+        "C_AND_NOT_Z": 8,
+        "NOT_C_OR_Z": 9,
+        "N_EQUAL_V": 10,
+        "N_NOT_EQUAL_V": 11,
+        "NOT_Z_AND_N_EQUAL_V": 12,
+        "Z_OR_N_NOT_EQUAL_V": 13,
+        "LUT_CODE": 14,
+        "COMP_RES_P": 15,
+    }
+    reg_mode_mapping = {
+        "CONST": 0,
+        "VALID": 1,
+        "BYPASS": 2,
+        "DELAY" : 3,
+    }
+    op_mapping = {
+        "ADD": 0,
+        "SUB": 1,
+    }
+    d.add_enum("FlagSel", EnumEncoding(4, flag_sel_mapping))
+    d.add_enum("RegMode", EnumEncoding(2, reg_mode_mapping))
+    d.add_enum("Op", EnumEncoding(1, op_mapping))
+    op_code_encoding = {
+        "bit2_mode" : range(28, 29),
+        "bit1_mode" : range(26, 27),
+        "bit0_mode" : range(24, 25),
+        "data0_mode" : range(18, 19),
+        "data1_mode" : range(16, 17),
+        "flag_sel" : range(12, 15),
+        "irq_enable_1" : range(11, 11),
+        "irq_enable_0" : range(10, 10),
+        "acc_en" : range(9, 9),
+        "signed" : range(6, 6),
+        "operation" : range(1, 1),
+    }
+    d.add_encoded("op_code", op_code_encoding, 32)
+    return d
+
+
 def to_namedtuple(d):
     return collections.namedtuple('NT', d.keys())(**d)
 
@@ -141,6 +194,9 @@ def random_bv(width):
 if __name__ == '__main__':
     compiler = dsl_compiler.DslCompiler()
     ir = compiler.compile(my_pe)
+
+    decode_spec = get_decode_spec()
+    verify_decode_specification.verify_decode_specification(decode_spec, ir)
 
     try:
         pass_ = dsl_type_check_pass.DslTypeCheckPass(ir)
