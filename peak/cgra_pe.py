@@ -1,6 +1,7 @@
 import collections
 import random
 import bit_vector
+import dsl_configuration_register_specification
 import dsl_compiler
 import dsl_decode_specification
 import dsl_functional_model_backend
@@ -182,6 +183,24 @@ def get_decode_spec():
     return d
 
 
+def get_crs():
+    WIDTH = 8
+    def make_address(num):
+        assert num >= 0 and num < (2 ** WIDTH)
+        return bit_vector.BitVector(value=num, num_bits=WIDTH)
+    crs = dsl_configuration_register_specification.DslConfigurationRegisterSpecification()
+    crs.add_register("lut_code", make_address(0))
+    crs.add_register("op_code", make_address(255))
+    crs.add_register("data0_const", make_address(240))
+    crs.add_register("data1_const", make_address(241))
+    crs.add_register("bit0_const", make_address(243))
+    crs.add_register("bit1_const", make_address(244))
+    crs.add_register("bit2_const", make_address(245))
+    crs.add_register("debug_trig", make_address(224))
+    crs.add_register("debug_trig_p", make_address(225))
+    return crs
+
+
 def to_namedtuple(d):
     return collections.namedtuple('NT', d.keys())(**d)
 
@@ -197,6 +216,8 @@ if __name__ == '__main__':
 
     decode_spec = get_decode_spec()
     verify_decode_specification.verify_decode_specification(decode_spec, ir)
+
+    crs = get_crs()
 
     try:
         pass_ = dsl_type_check_pass.DslTypeCheckPass(ir)
