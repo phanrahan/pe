@@ -1,13 +1,13 @@
 import ast
 import enum
 import math
-import dsl_ir
-import dsl_pass
-import dsl_types
-import dsl_compiler_error
+import peak_ir
+import compiler_pass
+import peak_types
+import compiler_error
 
 
-class DslTypeCheckError(dsl_compiler_error.DslCompilerError):
+class DslTypeCheckError(compiler_error.DslCompilerError):
     @staticmethod
     def __get_msg(msg : str):
         return "TypeError: %s" % msg
@@ -80,12 +80,12 @@ class IntType:
         return self.__value
 
 
-class DslTypeCheckPass(dsl_pass.DslPass):
-    def __init__(self, ir : dsl_ir.Ir):
+class DslTypeCheckPass(compiler_pass.DslPass):
+    def __init__(self, ir : peak_ir.Ir):
         super().__init__(ir)
 
     def run(self):
-        get_uqt = lambda t : dsl_types.TypeHelper.get_unqualified_type(t)
+        get_uqt = lambda t : peak_types.TypeHelper.get_unqualified_type(t)
         filename = self._ir.src_filename
         user_defined_types = self._ir.user_defined_types.types
         io = self._ir.io
@@ -98,24 +98,24 @@ class DslTypeCheckPass(dsl_pass.DslPass):
         def can_compare(left, right, op):
             if isinstance(op, (ast.In, ast.NotIn, ast.Is, ast.IsNot)):
                 return False
-            if isinstance(left, dsl_types.BitVector) and \
-               isinstance(right, dsl_types.BitVector) and \
+            if isinstance(left, peak_types.BitVector) and \
+               isinstance(right, peak_types.BitVector) and \
                left.width == right.width:
                 return True
-            if isinstance(left, dsl_types.Enum) and \
-               isinstance(right, dsl_types.Enum) and \
+            if isinstance(left, peak_types.Enum) and \
+               isinstance(right, peak_types.Enum) and \
                left.enum_cls == right.enum_cls and \
                isinstance(op, (ast.Eq, ast.NotEq)):
                 return True
             return False
 
         def can_assign(left, right):
-            if isinstance(left, dsl_types.BitVector) and \
-               isinstance(right, dsl_types.BitVector) and \
+            if isinstance(left, peak_types.BitVector) and \
+               isinstance(right, peak_types.BitVector) and \
                left.width == right.width:
                 return True
-            if isinstance(left, dsl_types.Enum) and \
-               isinstance(right, dsl_types.Enum) and \
+            if isinstance(left, peak_types.Enum) and \
+               isinstance(right, peak_types.Enum) and \
                left.enum_cls == right.enum_cls:
                 return True
             return False
@@ -123,38 +123,38 @@ class DslTypeCheckPass(dsl_pass.DslPass):
         def get_bin_op_type(left, right, op):
             SIMPLE_OPS = (ast.Add, ast.Sub, ast.BitAnd, ast.BitOr)
             LOGICAL_SHIFTS = (ast.LShift, ast.RShift)
-            if isinstance(left, dsl_types.BitVector):
+            if isinstance(left, peak_types.BitVector):
                 if isinstance(op, SIMPLE_OPS) and \
-                   isinstance(right, dsl_types.BitVector) and \
+                   isinstance(right, peak_types.BitVector) and \
                    left.width == right.width:
                     return left
                 if isinstance(op, LOGICAL_SHIFTS) and \
-                   isinstance(right, (IntType, dsl_types.BitVector)):
-                    return dsl_types.BitVector(left.width)
+                   isinstance(right, (IntType, peak_types.BitVector)):
+                    return peak_types.BitVector(left.width)
 
         def get_unary_op_type(operand, op):
-            if isinstance(operand, dsl_types.BitVector):
+            if isinstance(operand, peak_types.BitVector):
                 if isinstance(op, (ast.Invert)):
                     return operand
 
         def get_subscript_type(left, right):
-            if isinstance(left, dsl_types.Array):
+            if isinstance(left, peak_types.Array):
                 if isinstance(right, IntType) and \
                    right.value in range(0, left.size):
                     return left.type
-            if isinstance(left, dsl_types.BitVector):
+            if isinstance(left, peak_types.BitVector):
                 if isinstance(right, IntType) and \
                    right.value in range(0, left.width):
-                    return dsl_types.BitVector(1)
-                if isinstance(right, dsl_types.BitVector) and \
+                    return peak_types.BitVector(1)
+                if isinstance(right, peak_types.BitVector) and \
                    right.width == math.log(left.width, 2):
-                    return dsl_types.BitVector(1)
+                    return peak_types.BitVector(1)
             return None
 
         def get_concat_type(left, right):
-            if isinstance(left, dsl_types.BitVector) and \
-               isinstance(right, dsl_types.BitVector):
-                return dsl_types.BitVector(left.width + right.width)
+            if isinstance(left, peak_types.BitVector) and \
+               isinstance(right, peak_types.BitVector):
+                return peak_types.BitVector(left.width + right.width)
             return None
 
         class Visitor(ast.NodeVisitor):
@@ -209,7 +209,7 @@ class DslTypeCheckPass(dsl_pass.DslPass):
                 left_type = types[node.left].type
                 right_type = types[right].type
                 if can_compare(left_type, right_type, op):
-                    types[node] = TypeTable.Entry(dsl_types.BitVector(1), False)
+                    types[node] = TypeTable.Entry(peak_types.BitVector(1), False)
                     return
                 raise ComparisonTypeError(
                     left_type, right_type, op, filename, node)
@@ -256,10 +256,10 @@ class DslTypeCheckPass(dsl_pass.DslPass):
                 def get_info():
                     t = value_type.type
                     mutable = value_type.mutable
-                    if isinstance(t, dsl_types.Encoded):
+                    if isinstance(t, peak_types.Encoded):
                         return (t.encoding[attr], mutable)
                     if isinstance(t, enum.EnumMeta):
-                        return (dsl_types.Enum(t), False)
+                        return (peak_types.Enum(t), False)
                 ret = get_info()
                 assert(ret is not None)
                 (type_, mutable) = ret

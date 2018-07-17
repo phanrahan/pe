@@ -2,18 +2,18 @@ import ast
 import collections
 import jinja2
 import bit_vector
-import dsl_backend
-import dsl_ir
-import dsl_types
+import backend
+import peak_ir
+import peak_types
 
 
 class Register:
     @staticmethod
     def __get_value(type_):
-        if isinstance(type_, dsl_types.Array):
+        if isinstance(type_, peak_types.Array):
             value = Register.__get_value(type_.t)
             return [value for _ in range(type_.size)]
-        if isinstance(type_, dsl_types.Encoded):
+        if isinstance(type_, peak_types.Encoded):
             ret = {}
             for k, v in type_.encoding.items():
                 ret[k] = Register.__get_value(v)
@@ -58,7 +58,7 @@ class Register:
                                          self.next.__repr__())
 
 
-class DslFunctionalModelBackend(dsl_backend.DslBackend):
+class DslFunctionalModelBackend(backend.DslBackend):
     class RegisterTransformer(ast.NodeTransformer):
         def __init__(self, registers, ctx=ast.Load()):
             self.__registers = registers
@@ -95,7 +95,7 @@ class DslFunctionalModelBackend(dsl_backend.DslBackend):
         names = [name for name, t in var_map.items() if type_predicate(t)]
         return set(names)
 
-    def __init__(self, ir : dsl_ir.Ir, *,
+    def __init__(self, ir : peak_ir.Ir, *,
                  add_type_checks : bool = False,
                  kwarg_check : bool = False,
                  debug_src_file : str = None):
@@ -106,12 +106,12 @@ class DslFunctionalModelBackend(dsl_backend.DslBackend):
 
     def __type_check_input(self, name, value):
         def type_match(uqt, v):
-            if isinstance(uqt, dsl_types.BitVector):
+            if isinstance(uqt, peak_types.BitVector):
                 return isinstance(v, bit_vector.BitVector) and \
                     uqt.width == v.num_bits
-            if isinstance(uqt, dsl_types.Enum):
+            if isinstance(uqt, peak_types.Enum):
                 return isinstance(v, uqt.enum_cls)
-            if isinstance(uqt, dsl_types.Encoded):
+            if isinstance(uqt, peak_types.Encoded):
                 for kk, vv in uqt.encoding.items():
                     ret = hasattr(v, kk) and type_match(vv, getattr(v, kk))
                     if not ret:
@@ -133,17 +133,17 @@ class DslFunctionalModelBackend(dsl_backend.DslBackend):
         intermediates = self._ir.intermediates.intermediates
         for var_map in inputs, outputs, intermediates:
             for name, type_ in var_map.items():
-                var_map[name] = dsl_types.TypeHelper.TypeInfo.create(type_)
+                var_map[name] = peak_types.TypeHelper.TypeInfo.create(type_)
         dynamics = cls.__filter_names(
             inputs,
-            lambda t : dsl_types.Configuration not in t.qualifiers)
+            lambda t : peak_types.Configuration not in t.qualifiers)
         configurations = cls.__filter_names(
             inputs,
-            lambda t : dsl_types.Configuration in t.qualifiers)
+            lambda t : peak_types.Configuration in t.qualifiers)
         outputs = cls.__filter_names(outputs)
         registers = cls.__filter_names(
             intermediates,
-            lambda t : dsl_types.Register in t.qualifiers)
+            lambda t : peak_types.Register in t.qualifiers)
 
         transformer = cls.RegisterTransformer(registers)
         transformer.visit(self._ir.module)

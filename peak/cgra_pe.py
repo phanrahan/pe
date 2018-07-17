@@ -1,11 +1,11 @@
 import collections
 import random
 import bit_vector
-import dsl_configuration_register_specification
-import dsl_compiler
-import dsl_decode_specification
-import dsl_functional_model_backend
-import dsl_type_check_pass
+import configuration_register_specification
+import compiler
+import decode_specification
+import functional_model_backend
+import type_check_pass
 import verify_decode_specification
 
 
@@ -133,8 +133,8 @@ def my_pe():
 
 
 def get_decode_spec():
-    EnumEncoding = dsl_decode_specification.EnumEncoding
-    d = dsl_decode_specification.DslDecodeSpecification()
+    EnumEncoding = decode_specification.EnumEncoding
+    d = decode_specification.DslDecodeSpecification()
     flag_sel_mapping = {
         "Z": 0,
         "NOT_Z": 1,
@@ -188,7 +188,7 @@ def get_crs():
     def make_address(num):
         assert num >= 0 and num < (2 ** WIDTH)
         return bit_vector.BitVector(value=num, num_bits=WIDTH)
-    crs = dsl_configuration_register_specification.DslConfigurationRegisterSpecification()
+    crs = configuration_register_specification.DslConfigurationRegisterSpecification()
     crs.add_register("lut_code", make_address(0))
     crs.add_register("op_code", make_address(255))
     crs.add_register("data0_const", make_address(240))
@@ -211,7 +211,7 @@ def random_bv(width):
 
 
 if __name__ == '__main__':
-    compiler = dsl_compiler.DslCompiler()
+    compiler = compiler.DslCompiler()
     ir = compiler.compile(my_pe)
 
     decode_spec = get_decode_spec()
@@ -220,12 +220,12 @@ if __name__ == '__main__':
     crs = get_crs()
 
     try:
-        pass_ = dsl_type_check_pass.DslTypeCheckPass(ir)
+        pass_ = type_check_pass.DslTypeCheckPass(ir)
         pass_.run()
-    except dsl_type_check_pass.DslTypeCheckError as e:
+    except type_check_pass.DslTypeCheckError as e:
         raise e.get_exception() from None
 
-    backend = dsl_functional_model_backend.DslFunctionalModelBackend(
+    backend = functional_model_backend.DslFunctionalModelBackend(
         ir,
         add_type_checks=True,
         debug_src_file="debug.py",

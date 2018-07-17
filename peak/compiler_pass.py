@@ -1,7 +1,7 @@
-import dsl_ir
+import peak_ir
 
 class DslPass:
-    def __init__(self, ir : dsl_ir.Ir) -> None:
+    def __init__(self, ir : peak_ir.Ir) -> None:
         self._ir = ir
 
     def run(self):

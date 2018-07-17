@@ -1,5 +1,5 @@
 import ast
-import dsl_types
+import peak_types
 
 class Match:
     @staticmethod
@@ -57,20 +57,20 @@ class TypeMatcher:
         match = self.__match_func(node, "Input", self.match_QualifiedType)
         if not match:
             return match
-        return Match(True, dsl_types.Input(*match.data))
+        return Match(True, peak_types.Input(*match.data))
 
     def match_Output(self, node):
         match = self.__match_func(node, "Output", self.match_QualifiedType)
         if not match:
             return match
-        return Match(True, dsl_types.Output(*match.data))
+        return Match(True, peak_types.Output(*match.data))
 
     def match_Intermediate(self, node):
         match = self.__match_func(
             node, "Intermediate", self.match_QualifiedType)
         if not match:
             return match
-        return Match(True, dsl_types.Intermediate(*match.data))
+        return Match(True, peak_types.Intermediate(*match.data))
 
     def match_QualifiedType(self, node):
         return self.match_UnqualifiedType(node) | \
@@ -81,14 +81,14 @@ class TypeMatcher:
         match = self.__match_func(node, "Register", self.match_QualifiedType)
         if not match:
             return match
-        return Match(True, dsl_types.Register(*match.data))
+        return Match(True, peak_types.Register(*match.data))
 
     def match_Configuration(self, node):
         match =  self.__match_func(
             node, "Configuration", self.match_QualifiedType)
         if not match:
             return match
-        return Match(True, dsl_types.Configuration(*match.data))
+        return Match(True, peak_types.Configuration(*match.data))
 
     def match_UnqualifiedType(self, node):
         return self.match_BaseType(node) | \
@@ -100,7 +100,7 @@ class TypeMatcher:
             node, "Array", self.match_UnqualifiedType, self.match_Num)
         if not match:
             return match
-        return Match(True, dsl_types.Array(*match.data))
+        return Match(True, peak_types.Array(*match.data))
 
     def match_Encoded(self, node):
         NAME = "Encoded"
@@ -121,7 +121,7 @@ class TypeMatcher:
                name_arg.id in fields:
                 return Match.make_false(("Expected unique name", name_arg))
             fields[name_arg.id] = type_arg_match.data
-        return Match(True, dsl_types.Encoded(fields))
+        return Match(True, peak_types.Encoded(fields))
 
     def match_BaseType(self, node):
         return self.match_BitVector(node) | \
@@ -131,12 +131,12 @@ class TypeMatcher:
         match = self.__match_func(node, "BitVector", self.match_Num)
         if not match:
             return match
-        return Match(True, dsl_types.BitVector(*match.data))
+        return Match(True, peak_types.BitVector(*match.data))
 
     def match_Enum(self, node):
         if isinstance(node, ast.Name) and \
            node.id in self.__user_defined_types:
-            return Match(True, dsl_types.Enum(self.__user_defined_types[node.id]))
+            return Match(True, peak_types.Enum(self.__user_defined_types[node.id]))
         return Match.make_false(("Expected enum", node))
 
     def match_Num(self, node):

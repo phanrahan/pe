@@ -1,6 +1,6 @@
-from dsl_ir import Ir
-import dsl_types
-from dsl_decode_specification import DslDecodeSpecification, EnumEncoding
+from peak_ir import Ir
+import peak_types
+from decode_specification import DslDecodeSpecification, EnumEncoding
 
 
 def verify_user_defined_type(type_, enum_encoding):
@@ -20,9 +20,9 @@ def verify_user_defined_type(type_, enum_encoding):
 
 
 def required_bit_width(type_, enums):
-    if isinstance(type_, dsl_types.BitVector):
+    if isinstance(type_, peak_types.BitVector):
         return type_.width
-    if isinstance(type_, dsl_types.Enum):
+    if isinstance(type_, peak_types.Enum):
         enum_name = type_.enum_cls.__name__
         return enums[enum_name].bit_width
     raise Exception()
@@ -59,8 +59,8 @@ def verify_decode_specification(decode : DslDecodeSpecification, ir : Ir):
     encoded_types = {}
     for var_map in (inputs, outputs, outputs, intermediates):
         for k, v in var_map.items():
-            uqt = dsl_types.TypeHelper.get_unqualified_type(v)
-            if isinstance(uqt, dsl_types.Encoded):
+            uqt = peak_types.TypeHelper.get_unqualified_type(v)
+            if isinstance(uqt, peak_types.Encoded):
                 encoded_types[k] = uqt
     for name, type_ in encoded_types.items():
         if name not in decode.encoded:

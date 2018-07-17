@@ -2,10 +2,10 @@ import ast
 import enum
 import inspect
 from typing import Callable, Dict
-from dsl_compiler_error import DslCompilerError
-import dsl_ir
-import dsl_types
-import dsl_type_matcher
+from compiler_error import DslCompilerError
+import peak_ir
+import peak_types
+import type_matcher
 
 
 class DslCompiler:
@@ -14,7 +14,7 @@ class DslCompiler:
     def __init__(self):
         pass
 
-    def __compile_module(self, module : ast.Module) -> dsl_ir.Ir:
+    def __compile_module(self, module : ast.Module) -> peak_ir.Ir:
         filename = self.__filename
         user_defined_types = {}
         inputs = {}
@@ -39,18 +39,18 @@ class DslCompiler:
                 if name_declared(_id):
                     raise DslCompilerError(
                         "Redeclaration of %s" % _id, filename, node)
-                matcher = dsl_type_matcher.TypeMatcher(user_defined_types)
+                matcher = type_matcher.TypeMatcher(user_defined_types)
                 match = matcher.match_TopLevelType(node.value)
                 if not match:
                     raise DslCompilerError(match.data[0][0],
                                            filename,
                                            match.data[0][1])
                 _type = match.data
-                if isinstance(_type, dsl_types.Input):
+                if isinstance(_type, peak_types.Input):
                     inputs[_id] = _type.type
-                elif isinstance(_type, dsl_types.Output):
+                elif isinstance(_type, peak_types.Output):
                     outputs[_id] = _type.type
-                elif isinstance(_type, dsl_types.Intermediate):
+                elif isinstance(_type, peak_types.Intermediate):
                     intermediates[_id] = _type.type
                 else:
                     raise TypeError("Expected top level type")
@@ -106,12 +106,12 @@ class DslCompiler:
         except DslCompilerError as e:
             raise e.get_exception() from None
 
-        udt = dsl_ir.Ir.UserDefinedTypes(user_defined_types)
-        io = dsl_ir.Ir.Io(inputs, outputs)
-        im = dsl_ir.Ir.Intermediates(intermediates)
-        return dsl_ir.Ir(self.__filename, udt, io, im, module)
+        udt = peak_ir.Ir.UserDefinedTypes(user_defined_types)
+        io = peak_ir.Ir.Io(inputs, outputs)
+        im = peak_ir.Ir.Intermediates(intermediates)
+        return peak_ir.Ir(self.__filename, udt, io, im, module)
 
-    def compile(self, fn : Callable[[], None]) -> dsl_ir.Ir:
+    def compile(self, fn : Callable[[], None]) -> peak_ir.Ir:
         if not inspect.isfunction(fn):
             raise TypeError("Expected fn to be a function")
         self.__filename = inspect.getsourcefile(fn)
