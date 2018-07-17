@@ -2,13 +2,13 @@ import ast
 import enum
 import inspect
 from typing import Callable, Dict
-from compiler_error import DslCompilerError
+from compiler_error import CompilerError
 import peak_ir
 import peak_types
 import type_matcher
 
 
-class DslCompiler:
+class Compiler:
     BUILTINS = ["concat"]
 
     def __init__(self):
@@ -22,7 +22,7 @@ class DslCompiler:
         intermediates = {}
 
         def name_declared(_id):
-            return _id in (DslCompiler.BUILTINS |
+            return _id in (Compiler.BUILTINS |
                            inputs.keys() |
                            outputs.keys() |
                            intermediates.keys() |
@@ -32,17 +32,17 @@ class DslCompiler:
             def visit_Assign(self, node):
                 targets = node.targets
                 if len(targets) > 1 or not isinstance(targets[0], ast.Name):
-                    raise DslCompilerError(
+                    raise CompilerError(
                         "LHS of assignment must be a single name",
                         filename, node)
                 _id = targets[0].id
                 if name_declared(_id):
-                    raise DslCompilerError(
+                    raise CompilerError(
                         "Redeclaration of %s" % _id, filename, node)
                 matcher = type_matcher.TypeMatcher(user_defined_types)
                 match = matcher.match_TopLevelType(node.value)
                 if not match:
-                    raise DslCompilerError(match.data[0][0],
+                    raise CompilerError(match.data[0][0],
                                            filename,
                                            match.data[0][1])
                 _type = match.data
@@ -59,9 +59,9 @@ class DslCompiler:
             def visit_Name(self, node):
                 if name_declared(node.id):
                     return node
-                if node.id in DslCompiler.BUILTINS:
+                if node.id in Compiler.BUILTINS:
                     return node
-                raise DslCompilerError(
+                raise CompilerError(
                     "Name %s used before declaration" % node.id,
                     filename, node)
 
@@ -72,7 +72,7 @@ class DslCompiler:
                     args = node.value.args
                     if len(args) != 1:
                         error_node = node if len(args) == 0 else args[1]
-                        raise DslCompilerError(
+                        raise CompilerError(
                             "assign() expects exactly 1 argument",
                             filename, error_node)
                     target = self.visit(node.value.func.value)
@@ -93,17 +93,17 @@ class DslCompiler:
                     ctx = {"Enum" : enum.Enum, "auto" : enum.auto}
                     exec(compiled, ctx)
                     if name in user_defined_types:
-                        raise DslCompilerError(
+                        raise CompilerError(
                             "Redeclaration of class %s" % name, filename, node)
                     user_defined_types[name] = ctx[name]
                     return None
-                raise DslCompilerError("All user defined types must derive "
+                raise CompilerError("All user defined types must derive "
                                        "from Enum only", filename, node)
 
         try:
             transformer = Transformer()
             transformer.visit(module)
-        except DslCompilerError as e:
+        except CompilerError as e:
             raise e.get_exception() from None
 
         udt = peak_ir.Ir.UserDefinedTypes(user_defined_types)

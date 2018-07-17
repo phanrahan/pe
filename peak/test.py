@@ -35,16 +35,16 @@ def random_bv(width):
 
 
 if __name__ == '__main__':
-    compiler = compiler.DslCompiler()
+    compiler = compiler.Compiler()
     ir = compiler.compile(my_pe)
 
     try:
-        pass_ = type_check_pass.DslTypeCheckPass(ir)
+        pass_ = type_check_pass.TypeCheckPass(ir)
         pass_.run()
-    except type_check_pass.DslTypeCheckError as e:
+    except type_check_pass.TypeCheckError as e:
         raise e.get_exception() from None
 
-    backend = functional_model_backend.DslFunctionalModelBackend(ir, add_type_checks=True)
+    backend = functional_model_backend.FunctionalModelBackend(ir, add_type_checks=True)
     cls = backend.generate()
     inst = cls()
     print (inst(in0=random_bv(8), in1=random_bv(8), op=cls.Op.ADD))

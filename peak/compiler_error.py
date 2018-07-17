@@ -1,7 +1,7 @@
 import ast
 
 
-class DslCompilerError(Exception):
+class CompilerError(Exception):
     @staticmethod
     def get_line(filename, lineno):
         with open(filename, 'r') as f:
@@ -20,7 +20,7 @@ class DslCompilerError(Exception):
         exception.filename = self.__filename
         exception.lineno = self.__node.lineno
         exception.offset = self.__node.col_offset
-        exception.text = DslCompilerError.get_line(exception.filename,
+        exception.text = CompilerError.get_line(exception.filename,
                                                    exception.lineno)
         return exception
 

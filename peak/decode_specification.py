@@ -19,7 +19,7 @@ class EnumEncoding:
                 (self.__bit_width, self.__mapping))
 
 
-class DslDecodeSpecification:
+class DecodeSpecification:
     def __init__(self):
         self.__enums = {}
         self.__encoded = {}

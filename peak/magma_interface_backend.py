@@ -6,7 +6,7 @@ import peak_ir
 import peak_types
 
 
-class DslMagmaInterfaceBackend(backend.DslBackend):
+class MagmaInterfaceBackend(backend.Backend):
     def __init__(self, ir : peak_ir.Ir):
         super().__init__(ir)
 

@@ -1,6 +1,6 @@
 from peak_ir import Ir
 import peak_types
-from decode_specification import DslDecodeSpecification, EnumEncoding
+from decode_specification import DecodeSpecification, EnumEncoding
 
 
 def verify_user_defined_type(type_, enum_encoding):
@@ -45,7 +45,7 @@ def verify_encoded_type(type_, encoded, enums):
     return True
 
 
-def verify_decode_specification(decode : DslDecodeSpecification, ir : Ir):
+def verify_decode_specification(decode : DecodeSpecification, ir : Ir):
     # Verify enums.
     for name, type_ in ir.user_defined_types.types.items():
         if name not in decode.enums:

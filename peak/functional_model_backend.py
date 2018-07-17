@@ -58,7 +58,7 @@ class Register:
                                          self.next.__repr__())
 
 
-class DslFunctionalModelBackend(backend.DslBackend):
+class FunctionalModelBackend(backend.Backend):
     class RegisterTransformer(ast.NodeTransformer):
         def __init__(self, registers, ctx=ast.Load()):
             self.__registers = registers
@@ -127,7 +127,7 @@ class DslFunctionalModelBackend(backend.DslBackend):
         return compile(self._ir.module, self._ir.src_filename, mode="exec")
 
     def generate(self):
-        cls = DslFunctionalModelBackend
+        cls = FunctionalModelBackend
         inputs = self._ir.io.inputs
         outputs = self._ir.io.outputs
         intermediates = self._ir.intermediates.intermediates

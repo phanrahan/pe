@@ -7,17 +7,17 @@ import peak_types
 import compiler_error
 
 
-class DslTypeCheckError(compiler_error.DslCompilerError):
+class TypeCheckError(compiler_error.CompilerError):
     @staticmethod
     def __get_msg(msg : str):
         return "TypeError: %s" % msg
 
     def __init__(self, msg : str, filename : str, node : ast.AST):
-        msg = DslTypeCheckError.__get_msg(msg)
+        msg = TypeCheckError.__get_msg(msg)
         super().__init__(msg, filename, node)
 
 
-class AssignmentTypeError(DslTypeCheckError):
+class AssignmentTypeError(TypeCheckError):
     @staticmethod
     def __get_msg(left, right):
         return "Can not assign type %s to type %s" % (left, right)
@@ -27,12 +27,12 @@ class AssignmentTypeError(DslTypeCheckError):
         super().__init__(msg, filename, node)
 
 
-class ImmutableAssignmentError(DslTypeCheckError):
+class ImmutableAssignmentError(TypeCheckError):
     def __init__(self, filename : str, node : ast.AST):
         super().__init__("Can not assign immutable", filename, node)
 
 
-class ComparisonTypeError(DslTypeCheckError):
+class ComparisonTypeError(TypeCheckError):
     @staticmethod
     def __get_msg(left, right, op):
         return ("Comparison %s on %s and %s not supported" %
@@ -80,7 +80,7 @@ class IntType:
         return self.__value
 
 
-class DslTypeCheckPass(compiler_pass.DslPass):
+class TypeCheckPass(compiler_pass.Pass):
     def __init__(self, ir : peak_ir.Ir):
         super().__init__(ir)
 

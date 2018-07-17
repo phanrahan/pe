@@ -1,7 +1,7 @@
 import bit_vector
 
 
-class DslConfigurationRegisterSpecification:
+class ConfigurationRegisterSpecification:
     def __init__(self):
         self.__mapping = {}
 
