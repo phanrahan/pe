@@ -42,13 +42,13 @@ def lshl():
 def add():
     # res_p = cout
     def _add(a, b, c, d):
-        res_p = BitVector(a, a.num_bits + 1, signed=False) + BitVector(b, b.num_bits + 1, signed=False) + d >= 2 ** 16
+        res_p = BitVector(a, a.num_bits + 1) + BitVector(b, b.num_bits + 1) + d >= 2 ** 16
         return a + b + d, res_p
     return PE( 0x0 , _add)
 
 def sub():
     def _sub(a, b, c, d):
-        res_p = BitVector(a, a.num_bits + 1, signed=False) + BitVector(~b, b.num_bits + 1, signed=False) + 1 >= 2 ** 16
+        res_p = BitVector(a, a.num_bits + 1) + BitVector(~b, b.num_bits + 1) + 1 >= 2 ** 16
         return a - b, res_p
     return PE( 0x1 , _sub)
 
