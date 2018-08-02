@@ -332,7 +332,7 @@ class PE:
 
     def lut(self, code=None):
         def _lut(bit0, bit1, bit2):
-            idx = (bit2.as_int() << 2) | (bit1.as_int() << 1) | bit0.as_int()
+            idx = (bit2.as_uint() << 2) | (bit1.as_uint() << 1) | bit0.as_uint()
             return (code >> idx) & 1
         self._lut = _lut
         # if self.lut:
