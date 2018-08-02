@@ -1,1 +1,1 @@
-bit_vector
+-e git://github.com/leonardt/bit_vector.git@int_vector#egg=bit_vector
