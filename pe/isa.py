@@ -94,15 +94,18 @@ def sel():
 
 def mul0():
     def _mul(a, b, c, d):
+        a, b = BitVector(a, num_bits=32), BitVector(b, num_bits=32)
         return (a * b)[:16], 0
     return PE(0xb , _mul)
 
 def mul1():
     def _mul(a, b, c, d):
+        a, b = BitVector(a, num_bits=32), BitVector(b, num_bits=32)
         return (a * b)[8:24], 0
     return PE(0xc , _mul)
 
 def mul2():
     def _mul(a, b, c, d):
+        a, b = BitVector(a, num_bits=32), BitVector(b, num_bits=32)
         return (a * b)[16:32], 0
     return PE(0xd , _mul)
