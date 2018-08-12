@@ -1,4 +1,4 @@
-from .bv import BitVector
+from bit_vector import BitVector, UIntVector, SIntVector
 from .config import config
 
 __all__ = ['PE']
@@ -19,7 +19,7 @@ def msb(value):
 
 
 def signed(value):
-    return BitVector(value._value, value.num_bits, signed=True)
+    return SIntVector(value._value, value.num_bits)
 
 
 class Register:
@@ -66,10 +66,11 @@ class ALU:
         self._carry = False
 
     def __call__(self, op_a=0, op_b=0, c=0, op_d_p=0):
-        a = BitVector(op_a, num_bits=self.width, signed=self.signed)
-        b = BitVector(op_b, num_bits=self.width, signed=self.signed)
-        c = BitVector(c, num_bits=self.width, signed=self.signed)
-        d = BitVector(op_d_p, num_bits=self.width, signed=self.signed)
+        bv = UIntVector if not self.signed else  SIntVector
+        a = bv(op_a, num_bits=self.width)
+        b = bv(op_b, num_bits=self.width)
+        c = bv(c, num_bits=self.width)
+        d = bv(op_d_p, num_bits=self.width)
         res = self.op(a, b, c, d)
         if self._carry:
             res_p = BitVector(a._value + b._value >= (2 ** self.width), 1)
@@ -325,13 +326,13 @@ class PE:
     @property
     def instruction(self):
         irq_en = self.irq_en_0 | (self.irq_en_1 << 1)
-        return config('r' * 14 + 'ffffiia00soooooo', 
+        return config('r' * 14 + 'ffffiia00soooooo',
                       o=self._opcode, s=self._signed, a=0, i=irq_en, f=self.flag_sel, r=self.regcode)
 
 
     def lut(self, code=None):
         def _lut(bit0, bit1, bit2):
-            idx = (bit2.as_int() << 2) | (bit1.as_int() << 1) | bit0.as_int()
+            idx = (bit2.as_uint() << 2) | (bit1.as_uint() << 1) | bit0.as_uint()
             return (code >> idx) & 1
         self._lut = _lut
         # if self.lut:
