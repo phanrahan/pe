@@ -161,7 +161,7 @@ class PE:
         self.raise_debug_trig = res != self._debug_trig
         self.raise_debug_trig_p = res_p != self._debug_trig_p
 
-        return res.as_int(), res_p.as_int(), self.get_irq_trigger()
+        return res.as_uint(), res_p.as_uint(), self.get_irq_trigger()
 
     def get_irq_trigger(self):
         return (self.irq_en_0 and self.raise_debug_trig_p) \
