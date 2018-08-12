@@ -28,7 +28,7 @@ def neg():
 
 def lshr():
     # b[3:0]
-    return PE( 0xf , lambda a, b, c, d: a >> b[:4] ).carry()
+    return PE( 0xf , lambda a, b, c, d: a.bvlshr(b[:4])).carry()
 
 # def ashr():
 #     # b[3:0]
@@ -36,7 +36,7 @@ def lshr():
 
 def lshl():
     # b[3:0]
-    return PE( 0x11 , lambda a, b, c, d: a << b[:4] ).carry()
+    return PE( 0x11 , lambda a, b, c, d: a.bvshl(b[:4])).carry()
 
 
 def add():
