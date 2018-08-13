@@ -203,7 +203,7 @@ class PE:
         elif self._opcode == 0xd:
             V = 0
         elif self._opcode in [0x4, 0x5]:
-            V = alu_res_p
+            V = 0
         else:
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15])
         if self._opcode in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
