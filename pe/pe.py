@@ -183,13 +183,13 @@ class PE:
     def get_flag(self, ra, rb, rc, rd, alu_res, alu_res_p, lut_out):
         Z = alu_res == 0
         if self._opcode == 0x0: # add
-            C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17) + BitVector(rd, num_bits=7))[16]
+            C = (ra.ext(1) + rb.ext(1) + rd.ext(1))[16]
         elif self._opcode == 0x1: # sub
-            C = (BitVector(ra, num_bits=17) + BitVector(~rb, num_bits=17) + 1)[16]
+            C = (ra.ext(1) + (~rb).ext(1) + 1)[16]
         elif self._opcode == 0x3: # abs
-            C = (BitVector(~ra, num_bits=17) + 1)[16]
+            C = ((~ra).ext(1) + 1)[16]
         else:
-            C = (BitVector(ra, num_bits=17) + BitVector(rb, num_bits=17))[16]
+            C = (ra.ext(1) + rb.ext(1))[16]
         N = alu_res[15]
         if self._opcode == 0x0: # add
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb + rd)[15])
