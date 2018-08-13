@@ -202,6 +202,8 @@ class PE:
             V = (ra * rb)[15] if (ra[15] == rb[15]) else (ra * rb)[15] == 0 and (ra != 0 or rb != 0)
         elif self._opcode == 0xd:
             V = 0
+        elif self._opcode in [0x4, 0x5]:
+            V = alu_res_p
         else:
             V = (ra[15] == rb[15]) and (ra[15] != (ra + rb)[15])
         if self._opcode in [0x12, 0x13, 0x14,  # and, or, xor clear overflow flag
