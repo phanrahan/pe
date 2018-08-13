@@ -184,7 +184,7 @@ class PE:
         Z = alu_res == 0
         if self._opcode == 0x0: # add
             C = (ra.ext(1) + rb.ext(1) + rd.ext(1))[16]
-        elif self._opcode == 0x1: # sub
+        elif self._opcode in [0x1, 0x4, 0x5]: # sub
             C = (ra.ext(1) + (~rb).ext(1) + 1)[16]
         elif self._opcode == 0x3: # abs
             C = ((~ra).ext(1) + 1)[16]
