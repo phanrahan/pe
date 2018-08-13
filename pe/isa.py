@@ -92,20 +92,29 @@ def sel():
 # def const(value):
 #     return PE( 0x0 , lambda a, b, c, d: a ).rega( CONST, value )
 
-def mul0():
+def mul0(signed):
     def _mul(a, b, c, d):
-        a, b = BitVector(a, num_bits=32), BitVector(b, num_bits=32)
+        if signed:
+            a, b = a.sext(16), b.sext(16)
+        else:
+            a, b = a.zext(16), b.zext(16)
         return (a * b)[:16], 0
-    return PE(0xb , _mul)
+    return PE(0xb , _mul, signed=signed)
 
-def mul1():
+def mul1(signed):
     def _mul(a, b, c, d):
-        a, b = BitVector(a, num_bits=32), BitVector(b, num_bits=32)
+        if signed:
+            a, b = a.sext(16), b.sext(16)
+        else:
+            a, b = a.zext(16), b.zext(16)
         return (a * b)[8:24], 0
-    return PE(0xc , _mul)
+    return PE(0xc , _mul, signed=signed)
 
-def mul2():
+def mul2(signed):
     def _mul(a, b, c, d):
-        a, b = BitVector(a, num_bits=32), BitVector(b, num_bits=32)
+        if signed:
+            a, b = a.sext(16), b.sext(16)
+        else:
+            a, b = a.zext(16), b.zext(16)
         return (a * b)[16:32], 0
-    return PE(0xd , _mul)
+    return PE(0xd , _mul, signed=signed)
