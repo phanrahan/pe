@@ -3,7 +3,7 @@ from .pe import PE, CONST
 from .bv import BitVector
 
 __all__  = ['or_', 'and_', 'xor']
-__all__ += ['lshr', 'lshl']
+__all__ += ['shr', 'lshl']
 __all__ += ['add', 'sub']
 __all__ += ['min', 'max', 'abs']
 __all__ += ['ge', 'le']
@@ -26,9 +26,15 @@ def neg():
     return PE( 0x15 , lambda a, b, c, d: ~a+b ).regb(CONST, 1)
 
 
-def lshr():
+def shr(signed):
     # b[3:0]
-    return PE( 0xf , lambda a, b, c, d: a.bvlshr(b[:4])).carry()
+    def func(a, b, c, d):
+        if signed:
+            op = a.bvashr
+        else:
+            op = a.bvlshr
+        return op(b[:4])
+    return PE( 0xf , func).carry()
 
 # def ashr():
 #     # b[3:0]
