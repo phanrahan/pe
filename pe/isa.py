@@ -34,7 +34,7 @@ def shr(signed):
         else:
             op = a.bvlshr
         return op(b[:4])
-    return PE( 0xf , func).carry()
+    return PE( 0xf , func, signed=signed).carry()
 
 # def ashr():
 #     # b[3:0]
