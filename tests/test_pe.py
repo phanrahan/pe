@@ -1,4 +1,4 @@
-import pe 
+import pe
 
 def test_and():
     a = pe.and_()
@@ -42,8 +42,8 @@ def test_lshl():
     assert res==4
     assert res_p==0
 
-def test_lshr():
-    a = pe.lshr()
+def test_shr():
+    a = pe.shr(False)
     res, res_p, irq = a(2,1)
     assert res==1
     assert res_p==0
