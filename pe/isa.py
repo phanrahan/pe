@@ -1,6 +1,7 @@
 from .config import config
 from .pe import PE, CONST
 from .bv import BitVector
+import functools
 
 __all__  = ['or_', 'and_', 'xor']
 __all__ += ['shr', 'lshl']
@@ -28,13 +29,13 @@ def neg():
 
 def shr(signed):
     # b[3:0]
-    def func(a, b, c, d):
+    def func(signed, a, b, c, d):
         if signed:
             op = a.bvashr
         else:
             op = a.bvlshr
         return op(b[:4])
-    return PE( 0xf , func).carry()
+    return PE( 0xf , functools.partial(func, signed), signed=signed).carry()
 
 # def ashr():
 #     # b[3:0]
