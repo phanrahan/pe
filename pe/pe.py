@@ -1,4 +1,4 @@
-from bit_vector import BitVector, UIntVector, SIntVector
+from hwtypes import BitVector, UIntVector, SIntVector
 from .config import config
 
 __all__ = ['PE']
